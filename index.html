@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forge // Chronological Analytics</title>
+    <title>Forge // Vision & Time</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -11,7 +11,7 @@
             --text: #e1e1e6; --dim: #a1a1aa; --accent: #3b82f6; --gold: #f59e0b;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; overflow-x: hidden; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow-x: hidden; }
         
         .dashboard { display: grid; grid-template-columns: 1fr 340px; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
         @media (max-width: 1100px) { .dashboard { grid-template-columns: 1fr; } }
@@ -19,116 +19,132 @@
         .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
         h2 { font-size: 0.75rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
 
-        /* Scrollable Calendar Navigation */
+        /* Scrollable Calendar */
         .calendar-container {
-            display: flex; overflow-x: auto; gap: 20px; padding-bottom: 10px;
-            scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+            display: flex; overflow-x: auto; gap: 20px; padding-bottom: 15px;
+            scroll-snap-type: x mandatory; scrollbar-width: thin;
         }
-        .calendar-month-chunk {
-            flex: 0 0 280px; scroll-snap-align: start;
-        }
-        .month-label { font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; color: var(--accent); border-left: 3px solid var(--accent); padding-left: 8px; }
+        .calendar-month-chunk { flex: 0 0 280px; scroll-snap-align: start; }
+        .month-label { font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; color: var(--accent); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .cal-day { 
             aspect-ratio: 1; border: 1px solid var(--border); border-radius: 4px; 
             display: flex; align-items: center; justify-content: center; font-size: 0.7rem; 
-            cursor: pointer; transition: 0.2s; position: relative;
+            cursor: pointer; position: relative;
         }
-        .cal-day.active { background: var(--accent); color: white; border-color: var(--accent); font-weight: bold; }
-        .cal-day:hover { background: #1e1e22; border-color: var(--dim); }
-        .cal-day.today { border: 1.5px solid var(--gold); }
+        .cal-day.active { background: var(--accent); color: white; }
+        .cal-day.has-photo::after { content: ''; position: absolute; bottom: 2px; right: 2px; width: 4px; height: 4px; background: var(--gold); border-radius: 50%; }
 
-        /* Input & Console */
-        .console-header { cursor: pointer; background: var(--border); padding: 12px 20px; border-radius: 8px; font-weight: bold; display: flex; justify-content: space-between; }
-        .console-body { max-height: 0; overflow: hidden; transition: 0.3s ease; }
-        .console-body.open { max-height: 600px; padding: 15px 0; }
-        textarea { width: 100%; height: 200px; background: #000; color: #00ff41; border: 1px solid var(--border); padding: 12px; font-family: monospace; border-radius: 6px; font-size: 0.8rem; }
+        /* Timelapse Player */
+        #timelapseContainer { text-align: center; }
+        #timelapseFrame { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
 
         /* UI elements */
-        .btn { padding: 8px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
+        .btn { padding: 10px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
         .btn-prime { background: var(--accent); color: white; }
+        .btn-gold { background: var(--gold); color: black; }
         .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--dim); }
-        select { width: 100%; padding: 12px; background: #000; border: 1px solid var(--border); color: var(--text); border-radius: 8px; margin-bottom: 15px; }
+        textarea { width: 100%; height: 150px; background: #000; color: #00ff41; border: 1px solid var(--border); padding: 10px; font-family: monospace; border-radius: 6px; }
         
-        /* Modal */
-        #modalOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal { background: var(--card); width: 95%; max-width: 450px; border-radius: 12px; border: 1px solid var(--border); padding: 25px; max-height: 85vh; overflow-y: auto; }
-        #toast { position: fixed; top: 20px; right: 20px; background: var(--accent); color: white; padding: 10px 20px; border-radius: 8px; transform: translateX(200%); transition: 0.3s; z-index: 2000; }
+        #modalOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal { background: var(--card); width: 95%; max-width: 450px; border-radius: 12px; padding: 25px; }
+        #toast { position: fixed; top: 20px; right: 20px; background: var(--accent); color: white; padding: 10px 20px; border-radius: 8px; transform: translateX(250%); transition: 0.3s; z-index: 2000; }
     </style>
 </head>
 <body>
 
-<div id="toast">Data Updated</div>
+<div id="toast">Update Sent</div>
 <div id="modalOverlay" onclick="closeModal()"><div class="modal" id="modalContent" onclick="event.stopPropagation()"></div></div>
 
 <div class="dashboard">
     <main>
         <div class="card">
-            <div class="console-header" onclick="toggleConsole()">
-                <span>> TERMINAL: DATA INGESTION</span>
-                <span id="cToggle">+</span>
-            </div>
-            <div class="console-body" id="cBody">
-                <textarea id="logInput" placeholder="Paste JSON or Plaintext logs..."></textarea>
-                <div style="margin-top:10px; display:flex; gap:10px;">
-                    <button class="btn btn-prime" onclick="ingest()">Process</button>
-                    <button class="btn btn-ghost" onclick="toggleConsole()">Cancel</button>
-                </div>
+            <h2>Data & Image Ingestion</h2>
+            <textarea id="logInput" placeholder="Paste logs or JSON here..."></textarea>
+            <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
+                <button class="btn btn-prime" onclick="ingest()">Save Log</button>
+                <input type="file" id="imgIn" hidden onchange="uploadImage(event)">
+                <button class="btn btn-ghost" onclick="document.getElementById('imgIn').click()">📷 Upload Photo</button>
+                <span id="upStatus" style="font-size:0.7rem; color:var(--gold)"></span>
             </div>
         </div>
 
         <div class="card">
-            <h2>Chronological Intensity</h2>
+            <h2>Activity History</h2>
             <div id="calendarContainer" class="calendar-container"></div>
         </div>
 
         <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2>Progress Explorer</h2>
-                <span id="prTag" style="color:var(--gold); font-size:0.7rem; font-weight:bold; display:none;">🏆 PERSONAL RECORD</span>
-            </div>
             <select id="exSelect" onchange="draw()"></select>
-            <div style="height:320px;"><canvas id="mainChart"></canvas></div>
+            <div style="height:300px;"><canvas id="mainChart"></canvas></div>
         </div>
     </main>
 
     <aside>
         <div class="card">
-            <h2>Records & Backup</h2>
-            <div style="display:flex; gap:10px; margin-bottom:20px;">
-                <button class="btn btn-ghost" style="flex:1" onclick="exportJSON()">Export</button>
-                <button class="btn btn-ghost" style="flex:1" onclick="document.getElementById('fIn').click()">Import</button>
-            </div>
-            <input type="file" id="fIn" hidden onchange="importJSON(event)">
-            <div id="stats" style="font-size:0.8rem; color:var(--dim)"></div>
-            <button class="btn btn-ghost" style="width:100%; margin-top:20px; color:var(--gold)" onclick="clearAll()">Clear Database</button>
+            <h2>Visual Progress</h2>
+            <button class="btn btn-gold" style="width:100%" onclick="startTimelapse()">▶ Play Timelapse</button>
+            <div id="stats" style="margin-top:20px; font-size:0.8rem; color:var(--dim)"></div>
+        </div>
+        <div class="card">
+            <button class="btn btn-ghost" style="width:100%" onclick="exportJSON()">Backup Database</button>
         </div>
     </aside>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('forge_db_v3') || '[]');
+    const IMGBB_KEY = 'f2b50e9be27d0a5a75ec906233a6ed6d';
+    let db = JSON.parse(localStorage.getItem('forge_db_v4') || '[]');
     let chartObj = null;
+
+    async function uploadImage(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        
+        document.getElementById('upStatus').innerText = "Uploading...";
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            const url = data.data.url;
+            
+            const today = new Date().toISOString().split('T')[0];
+            let entry = db.find(d => d.date === today) || { date: today, exercises: [] };
+            entry.photoUrl = url;
+            
+            db = db.filter(d => d.date !== today);
+            db.push(entry);
+            save();
+            document.getElementById('upStatus').innerText = "Upload Success!";
+            msg("Photo Synced to Cloud");
+        } catch(err) {
+            document.getElementById('upStatus').innerText = "Error!";
+        }
+    }
 
     function ingest() {
         const input = document.getElementById('logInput').value.trim();
         if(!input) return;
-
         try {
-            const parsed = JSON.parse(input);
-            const workouts = parsed.workouts || (Array.isArray(parsed) ? parsed : [parsed]);
-            workouts.forEach(w => {
+            const p = JSON.parse(input);
+            (p.workouts || p).forEach(w => {
+                const existing = db.find(d => d.date === w.date);
                 db = db.filter(d => d.date !== w.date);
-                db.push(w);
+                db.push({ ...existing, ...w });
             });
-            msg("JSON Ingested");
         } catch(e) {
             const sections = input.split(/##\s+/).filter(s => s.trim());
             sections.forEach(sec => {
                 const lines = sec.split('\n');
                 const date = (lines[0].match(/(\d{4}-\d{2}-\d{2})/) || [])[1];
                 if(date) {
-                    const workout = { date, exercises: [] };
+                    let workout = db.find(d => d.date === date) || { date, exercises: [] };
+                    workout.exercises = [];
                     lines.slice(1).forEach(l => {
                         const p = l.split(/[|]+/).map(i => i.trim()).filter(i => i);
                         if(p.length >= 2) {
@@ -144,91 +160,91 @@
                     db.push(workout);
                 }
             });
-            msg("Text Parsed");
         }
         save();
-        toggleConsole();
         document.getElementById('logInput').value = '';
     }
 
     function save() {
-        localStorage.setItem('forge_db_v3', JSON.stringify(db));
+        localStorage.setItem('forge_db_v4', JSON.stringify(db));
         init();
     }
 
     function init() {
-        renderScrollableCalendar();
-        const picker = document.getElementById('exSelect');
-        const unique = [...new Set(db.flatMap(l => l.exercises.map(e => e.name)))].sort();
-        const curr = picker.value;
-        picker.innerHTML = unique.map(u => `<option value="${u}">${u}</option>`).join('');
-        if(curr && unique.includes(curr)) picker.value = curr;
-        draw();
+        renderCalendar();
+        updatePicker();
         updateStats();
     }
 
-    function renderScrollableCalendar() {
+    function renderCalendar() {
         const container = document.getElementById('calendarContainer');
         container.innerHTML = '';
-        
-        // Find date range
-        const dates = db.map(d => new Date(d.date)).sort((a,b) => a-b);
-        const start = dates.length ? new Date(dates[0]) : new Date();
-        const end = new Date(); // Always show up to today
-        
-        // Adjust start to beginning of month
-        start.setDate(1);
-
+        const start = new Date(2025, 0, 1);
+        const end = new Date();
         let curr = new Date(start);
-        while (curr <= end) {
-            const monthChunk = document.createElement('div');
-            monthChunk.className = 'calendar-month-chunk';
-            
-            const monthLabel = document.createElement('div');
-            monthLabel.className = 'month-label';
-            monthLabel.innerText = curr.toLocaleString('default', { month: 'long', year: 'numeric' });
-            monthChunk.appendChild(monthLabel);
 
+        while (curr <= end) {
+            const month = document.createElement('div');
+            month.className = 'calendar-month-chunk';
+            month.innerHTML = `<div class="month-label">${curr.toLocaleString('default', { month: 'short', year: 'numeric' })}</div>`;
             const grid = document.createElement('div');
             grid.className = 'calendar-grid';
             
-            const daysInMonth = new Date(curr.getFullYear(), curr.getMonth() + 1, 0).getDate();
-            for (let i = 1; i <= daysInMonth; i++) {
+            const lastDay = new Date(curr.getFullYear(), curr.getMonth() + 1, 0).getDate();
+            for(let i=1; i<=lastDay; i++) {
                 const ds = `${curr.getFullYear()}-${String(curr.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                const log = db.find(l => l.date === ds);
-                const isToday = ds === new Date().toISOString().split('T')[0];
-                
+                const log = db.find(d => d.date === ds);
                 const d = document.createElement('div');
-                d.className = `cal-day ${log ? 'active' : ''} ${isToday ? 'today' : ''}`;
+                d.className = `cal-day ${log ? 'active' : ''} ${log?.photoUrl ? 'has-photo' : ''}`;
                 d.innerText = i;
                 d.onclick = () => log && showLog(log);
                 grid.appendChild(d);
             }
-            monthChunk.appendChild(grid);
-            container.appendChild(monthChunk);
-            
+            month.appendChild(grid);
+            container.appendChild(month);
             curr.setMonth(curr.getMonth() + 1);
         }
-        // Auto-scroll to end (most recent)
         container.scrollLeft = container.scrollWidth;
     }
 
-    function showLog(log) {
-        let h = `<h3 style="color:var(--accent); margin-bottom:5px;">${new Date(log.date).toDateString()}</h3>`;
-        if(log.workout_type) h += `<div style="font-size:0.7rem; color:var(--dim); margin-bottom:15px;">TYPE: ${log.workout_type.toUpperCase()}</div>`;
+    function startTimelapse() {
+        const photos = db.filter(d => d.photoUrl).sort((a,b) => new Date(a.date) - new Date(b.date));
+        if(!photos.length) return msg("No photos found");
+
+        const content = document.getElementById('modalContent');
+        content.innerHTML = `
+            <div id="timelapseContainer">
+                <div id="tlDate" style="font-weight:bold; margin-bottom:10px;"></div>
+                <img id="timelapseFrame">
+                <button class="btn btn-ghost" style="width:100%; margin-top:15px;" onclick="stopTimelapse()">Stop</button>
+            </div>
+        `;
+        document.getElementById('modalOverlay').style.display = 'flex';
         
+        let i = 0;
+        window.tlInterval = setInterval(() => {
+            const frame = document.getElementById('timelapseFrame');
+            const label = document.getElementById('tlDate');
+            if(!frame) return stopTimelapse();
+            
+            frame.src = photos[i].photoUrl;
+            label.innerText = photos[i].date;
+            i = (i + 1) % photos.length;
+        }, 200); // 5 frames per second
+    }
+
+    function stopTimelapse() {
+        clearInterval(window.tlInterval);
+        closeModal();
+    }
+
+    function showLog(log) {
+        let h = `<h3 style="color:var(--accent)">${log.date}</h3>`;
+        if(log.photoUrl) h += `<img src="${log.photoUrl}" style="width:100%; border-radius:8px; margin:10px 0;">`;
         log.exercises.forEach(ex => {
-            h += `<div style="margin-bottom:12px; padding:10px; background:#000; border-radius:8px;">
-                <div style="font-weight:bold; font-size:0.9rem;">${ex.name}</div>
-                <div style="font-size:0.8rem; color:var(--dim)">${ex.sets.map(s => {
-                    const weight = s.weight_lb || s.weight_kg || s.weight || 'BW';
-                    const reps = s.reps || s.distance_miles || s.distance_mile || s.time_minutes || '?';
-                    return `${weight} x ${reps}`;
-                }).join(' • ')}</div>
-            </div>`;
+            h += `<div style="font-size:0.85rem; margin-top:10px;"><b>${ex.name}</b>: ${ex.sets.map(s => `${s.weight_lb || s.weight_kg || 'BW'}x${s.reps}`).join(', ')}</div>`;
         });
-        if(log.notes) h += `<p style="font-size:0.75rem; font-style:italic; color:var(--dim); margin-top:10px;">Note: ${log.notes}</p>`;
-        h += `<button class="btn btn-ghost" style="width:100%; margin-top:15px;" onclick="closeModal()">Close</button>`;
+        h += `<button class="btn btn-ghost" style="width:100%; margin-top:20px;" onclick="closeModal()">Close</button>`;
         document.getElementById('modalContent').innerHTML = h;
         document.getElementById('modalOverlay').style.display = 'flex';
     }
@@ -237,36 +253,25 @@
         const name = document.getElementById('exSelect').value;
         if(!name) return;
         const pts = db.filter(l => l.exercises.some(e => e.name === name))
-            .map(l => ({
-                x: l.date,
-                y: Math.max(...l.exercises.find(e => e.name === name).sets.map(s => s.weight_lb || s.weight_kg || s.weight || 0))
-            })).sort((a,b) => new Date(a.x) - new Date(b.x));
-
-        const max = Math.max(...pts.map(p => p.y));
-        document.getElementById('prTag').style.display = (pts.length && pts[pts.length-1].y === max && max > 0) ? 'block' : 'none';
-
+            .map(l => ({ x: l.date, y: Math.max(...l.exercises.find(e => e.name === name).sets.map(s => s.weight_lb || s.weight_kg || 0)) }))
+            .sort((a,b) => new Date(a.x) - new Date(b.x));
         if(chartObj) chartObj.destroy();
         chartObj = new Chart(document.getElementById('mainChart'), {
-            type: 'line',
-            data: { labels: pts.map(p => p.x), datasets: [{ data: pts.map(p => p.y), borderColor: '#3b82f6', tension: 0.3, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)' }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, 
-            scales: { x: { ticks: { color: '#a1a1aa' }, grid: { display: false } }, y: { ticks: { color: '#a1a1aa' }, grid: { color: '#232326' } } } }
+            type: 'line', data: { labels: pts.map(p => p.x), datasets: [{ data: pts.map(p => p.y), borderColor: '#3b82f6', tension: 0.3 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
     }
 
-    function updateStats() {
-        document.getElementById('stats').innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>Sessions:</span> <b>${db.length}</b></div>
-            <div style="display:flex; justify-content:space-between;"><span>Unique Movements:</span> <b>${new Set(db.flatMap(l => l.exercises.map(e => e.name))).size}</b></div>
-        `;
+    function updatePicker() {
+        const sel = document.getElementById('exSelect');
+        const unique = [...new Set(db.flatMap(l => l.exercises.map(e => e.name)))].sort();
+        sel.innerHTML = unique.map(u => `<option value="${u}">${u}</option>`).join('');
+        draw();
     }
-
-    function toggleConsole() { const b = document.getElementById('cBody'); b.classList.toggle('open'); document.getElementById('cToggle').innerText = b.classList.contains('open') ? '-' : '+'; }
-    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
-    function msg(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.transform = 'translateX(0)'; setTimeout(() => t.style.transform = 'translateX(200%)', 3000); }
-    function exportJSON() { const b = new Blob([JSON.stringify({workouts: db}, null, 2)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'forge_history.json'; a.click(); }
-    function importJSON(e) { const r = new FileReader(); r.onload = (ev) => { db = (JSON.parse(ev.target.result)).workouts || JSON.parse(ev.target.result); save(); }; r.readAsText(e.target.files[0]); }
-    function clearAll() { if(confirm("This will permanently delete your local database. Continue?")) { db = []; save(); } }
+    function updateStats() { document.getElementById('stats').innerText = `Total Sessions: ${db.length} | Photos: ${db.filter(d => d.photoUrl).length}`; }
+    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; clearInterval(window.tlInterval); }
+    function msg(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.transform = 'translateX(0)'; setTimeout(() => t.style.transform = 'translateX(250%)', 3000); }
+    function exportJSON() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type:'application/json'})); a.download = 'forge_v4.json'; a.click(); }
 
     init();
 </script>
