@@ -4,49 +4,125 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0f172a">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1020" media="(prefers-color-scheme: dark)">
 <title>Workout Tracker</title>
 <style>
   /* ============ RESET & BASE ============ */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #f5f7fb;
-    --surface: #ffffff;
-    --surface-2: #f1f4f9;
-    --border: #e2e8f0;
-    --text: #0f172a;
-    --text-muted: #64748b;
-    --primary: #4f46e5;
-    --primary-hover: #4338ca;
-    --primary-soft: #eef2ff;
-    --danger: #ef4444;
-    --danger-soft: #fee2e2;
-    --success: #10b981;
-    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
-    --radius: 12px;
-    --radius-sm: 8px;
-    --tap: 44px;
-  }
-  html, body {
-    height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 16px;
-    line-height: 1.4;
-  }
-  body {
-    max-width: 640px;
-    margin: 0 auto;
-    padding-bottom: 120px;
-    min-height: 100vh;
-    background: var(--bg);
-  }
-  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
-  input, select { font-family: inherit; font-size: 16px; color: var(--text); }
-  input:focus, select:focus, button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* Light theme (default) — all colors go through CSS vars so dark-mode override is one block */
+:root {
+color-scheme: light dark;              /* Tell the UA our inputs support both schemes */
+–bg: #f5f7fb;
+–surface: #ffffff;
+–surface-2: #eef2f7;
+–surface-3: #e4e9f1;
+–border: #cbd5e1;                     /* Bumped contrast vs prior #e2e8f0 */
+–border-strong: #94a3b8;
+–text: #0b1020;                       /* Darker for WCAG AA on white */
+–text-muted: #475569;                 /* Darker muted for readability */
+–primary: #4338ca;                    /* Deeper indigo: AA on white */
+–primary-hover: #3730a3;
+–primary-contrast: #ffffff;
+–primary-soft: #e0e7ff;
+–primary-soft-text: #312e81;
+–danger: #b91c1c;
+–danger-soft: #fee2e2;
+–danger-contrast: #ffffff;
+–success: #047857;
+–shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+–shadow-md: 0 4px 14px rgba(15, 23, 42, 0.10);
+–radius: 12px;
+–radius-sm: 8px;
+–tap: 48px;                           /* Bumped from 44px for easier hit targets */
+–focus-ring: 0 0 0 3px rgba(67, 56, 202, 0.35);
+}
+
+/* Dark theme — auto-activates via OS preference */
+@media (prefers-color-scheme: dark) {
+:root {
+–bg: #0b1020;
+–surface: #151b2e;
+–surface-2: #1e2540;
+–surface-3: #2a3356;
+–border: #3a4468;
+–border-strong: #5a6590;
+–text: #f1f5ff;                     /* High contrast on dark surface */
+–text-muted: #9aa7c7;
+–primary: #818cf8;                  /* Lighter indigo so it pops on dark */
+–primary-hover: #a5b4fc;
+–primary-contrast: #0b1020;
+–primary-soft: #312e81;
+–primary-soft-text: #e0e7ff;
+–danger: #f87171;
+–danger-soft: #3f1d1d;
+–danger-contrast: #0b1020;
+–success: #34d399;
+–shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+–shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
+–focus-ring: 0 0 0 3px rgba(129, 140, 248, 0.45);
+}
+}
+
+html, body {
+height: 100%;
+font-family: -apple-system, BlinkMacSystemFont, “Segoe UI”, Roboto, “Helvetica Neue”, Arial, sans-serif;
+-webkit-font-smoothing: antialiased;
+background: var(–bg);
+color: var(–text);
+font-size: 16px;
+line-height: 1.4;
+}
+body {
+max-width: 640px;
+margin: 0 auto;
+padding-bottom: 120px;
+min-height: 100vh;
+background: var(–bg);
+}
+
+/* Form controls: EXPLICITLY set bg + color so OS dark-mode autocolor can’t override us */
+button {
+font-family: inherit;
+cursor: pointer;
+border: none;
+background: transparent;
+color: var(–text);
+}
+input, select, textarea {
+font-family: inherit;
+font-size: 16px;
+background: var(–surface);
+color: var(–text);
+border: 1px solid var(–border);
+-webkit-appearance: none;
+appearance: none;
+}
+/* Native date picker styling hints */
+input[type=“date”] {
+background: var(–surface);
+color: var(–text);
+}
+/* Dark-mode: invert the native calendar icon so it’s visible on dark bg */
+@media (prefers-color-scheme: dark) {
+input[type=“date”]::-webkit-calendar-picker-indicator {
+filter: invert(0.85);
+}
+}
+input::placeholder { color: var(–text-muted); opacity: 1; }
+
+/* Focus ring visible on all backgrounds */
+input:focus, select:focus, textarea:focus, button:focus-visible {
+outline: none;
+box-shadow: var(–focus-ring);
+border-color: var(–primary);
+}
+
+/* Selected text: force readable contrast regardless of device defaults */
+::selection { background: var(–primary); color: var(–primary-contrast); }
+::-moz-selection { background: var(–primary); color: var(–primary-contrast); }
 
 /* ============ STICKY TOP BAR ============ */
 .topbar {
@@ -60,11 +136,11 @@ box-shadow: var(–shadow-sm);
 }
 .topbar-title {
 font-size: 13px;
-font-weight: 600;
+font-weight: 700;
 color: var(–text-muted);
 text-transform: uppercase;
 letter-spacing: 0.06em;
-margin-bottom: 6px;
+margin-bottom: 8px;
 }
 .date-row {
 display: flex;
@@ -75,57 +151,57 @@ align-items: center;
 flex: 1;
 min-height: var(–tap);
 padding: 0 12px;
-border: 1px solid var(–border);
 border-radius: var(–radius-sm);
-background: var(–surface);
 font-weight: 600;
 font-size: 16px;
 }
-.date-nav-btn {
+.icon-btn {
 min-width: var(–tap);
 min-height: var(–tap);
 border: 1px solid var(–border);
 border-radius: var(–radius-sm);
 background: var(–surface);
-font-size: 20px;
-font-weight: 600;
-color: var(–text-muted);
+color: var(–text);
 display: flex;
 align-items: center;
 justify-content: center;
+transition: background 0.15s, transform 0.08s;
 }
-.date-nav-btn:active { background: var(–surface-2); }
+.icon-btn:active { background: var(–surface-2); transform: scale(0.96); }
+.icon-btn svg { width: 22px; height: 22px; display: block; }
+
 .action-row {
 display: flex;
 gap: 8px;
 margin-top: 10px;
 }
-.action-row button, .action-row label {
+.action-btn {
 flex: 1;
-min-height: 40px;
+min-height: 44px;
 border-radius: var(–radius-sm);
-font-size: 13px;
+font-size: 14px;
 font-weight: 600;
 display: flex;
 align-items: center;
 justify-content: center;
-gap: 4px;
-padding: 0 8px;
+gap: 6px;
+padding: 0 10px;
 border: 1px solid var(–border);
 background: var(–surface);
-color: var(–text-muted);
+color: var(–text);
 cursor: pointer;
 }
-.action-row button:active, .action-row label:active { background: var(–surface-2); }
+.action-btn:active { background: var(–surface-2); }
+.action-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
 
 /* ============ MAIN CONTENT ============ */
 main { padding: 16px; }
 .section-header {
-font-size: 14px;
-font-weight: 600;
+font-size: 13px;
+font-weight: 700;
 color: var(–text-muted);
 text-transform: uppercase;
-letter-spacing: 0.05em;
+letter-spacing: 0.06em;
 margin: 8px 4px 10px;
 display: flex;
 justify-content: space-between;
@@ -143,8 +219,9 @@ box-shadow: var(–shadow-sm);
 }
 .soreness-question {
 font-size: 15px;
-font-weight: 600;
+font-weight: 700;
 margin-bottom: 10px;
+color: var(–text);
 }
 .soreness-sub {
 font-size: 13px;
@@ -152,23 +229,21 @@ color: var(–text-muted);
 font-weight: 400;
 margin-top: 2px;
 }
-.toggle-row {
-display: flex;
-gap: 8px;
-}
+.toggle-row { display: flex; gap: 8px; }
 .toggle-btn {
 flex: 1;
 min-height: var(–tap);
 border: 1px solid var(–border);
 border-radius: var(–radius-sm);
 background: var(–surface);
+color: var(–text);
 font-weight: 600;
 font-size: 15px;
 transition: all 0.15s;
 }
 .toggle-btn.active {
 background: var(–primary);
-color: #fff;
+color: var(–primary-contrast);
 border-color: var(–primary);
 }
 .soreness-areas {
@@ -176,25 +251,21 @@ margin-top: 12px;
 padding-top: 12px;
 border-top: 1px solid var(–border);
 }
-.area-chips {
-display: flex;
-flex-wrap: wrap;
-gap: 8px;
-}
+.area-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
-min-height: 36px;
+min-height: 38px;
 padding: 0 14px;
 border: 1px solid var(–border);
-border-radius: 18px;
+border-radius: 19px;
 background: var(–surface-2);
+color: var(–text);
 font-size: 14px;
 font-weight: 500;
-color: var(–text);
 text-transform: capitalize;
 }
 .chip.active {
 background: var(–primary);
-color: #fff;
+color: var(–primary-contrast);
 border-color: var(–primary);
 }
 .other-input {
@@ -202,17 +273,11 @@ margin-top: 10px;
 width: 100%;
 min-height: var(–tap);
 padding: 0 12px;
-border: 1px solid var(–border);
 border-radius: var(–radius-sm);
-background: var(–surface);
 }
 
 /* ============ EXERCISE LIST ============ */
-.exercise-list {
-display: flex;
-flex-direction: column;
-gap: 12px;
-}
+.exercise-list { display: flex; flex-direction: column; gap: 12px; }
 .exercise-card {
 background: var(–surface);
 border: 1px solid var(–border);
@@ -230,12 +295,20 @@ margin-bottom: 10px;
 .exercise-select {
 flex: 1;
 min-height: var(–tap);
-padding: 0 10px;
-border: 1px solid var(–border);
+padding: 0 12px;
+padding-right: 32px;                   /* room for custom caret */
 border-radius: var(–radius-sm);
-background: var(–surface);
 font-weight: 600;
 font-size: 15px;
+/* Custom caret (SVG) so it’s visible on both themes */
+background-image: url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5L6 6.5L11 1.5' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>”);
+background-repeat: no-repeat;
+background-position: right 10px center;
+}
+@media (prefers-color-scheme: dark) {
+.exercise-select {
+background-image: url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5L6 6.5L11 1.5' stroke='%239aa7c7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>”);
+}
 }
 .delete-btn {
 min-width: var(–tap);
@@ -243,20 +316,20 @@ min-height: var(–tap);
 border-radius: var(–radius-sm);
 background: var(–danger-soft);
 color: var(–danger);
-font-size: 20px;
+border: 1px solid transparent;
 display: flex;
 align-items: center;
 justify-content: center;
 flex-shrink: 0;
+transition: background 0.15s, transform 0.08s;
 }
-.delete-btn:active { background: #fecaca; }
+.delete-btn:active { transform: scale(0.94); }
+.delete-btn svg { width: 22px; height: 22px; }
 .custom-name-input {
 width: 100%;
 min-height: var(–tap);
 padding: 0 12px;
-border: 1px solid var(–border);
 border-radius: var(–radius-sm);
-background: var(–surface);
 margin-bottom: 10px;
 font-size: 15px;
 }
@@ -269,38 +342,46 @@ margin-bottom: 10px;
 .stat-field label {
 display: block;
 font-size: 11px;
-font-weight: 600;
+font-weight: 700;
 color: var(–text-muted);
 text-transform: uppercase;
 letter-spacing: 0.05em;
 margin-bottom: 4px;
 }
-.stat-field input {
+.stat-field input, .stat-field select {
 width: 100%;
 min-height: var(–tap);
 padding: 0 10px;
-border: 1px solid var(–border);
 border-radius: var(–radius-sm);
-background: var(–surface);
 font-size: 15px;
 font-weight: 600;
 text-align: center;
 }
-/* Hide number input spinners */
-.stat-field input[type=“number”]::-webkit-outer-spin-button,
-.stat-field input[type=“number”]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.stat-field input[type=“number”] { -moz-appearance: textfield; }
-
-.difficulty-row {
-display: flex;
-gap: 8px;
+/* Custom caret for the unit dropdown */
+.stat-field select {
+padding-right: 24px;
+background-image: url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1L5 5L9 1' stroke='%23475569' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>”);
+background-repeat: no-repeat;
+background-position: right 8px center;
 }
+@media (prefers-color-scheme: dark) {
+.stat-field select {
+background-image: url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1L5 5L9 1' stroke='%239aa7c7' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>”);
+}
+}
+/* Hide number input spinners */
+input[type=“number”]::-webkit-outer-spin-button,
+input[type=“number”]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=“number”] { -moz-appearance: textfield; }
+
+.difficulty-row { display: flex; gap: 8px; }
 .diff-btn {
 flex: 1;
 min-height: var(–tap);
 border: 1px solid var(–border);
 border-radius: var(–radius-sm);
 background: var(–surface-2);
+color: var(–text);
 font-size: 22px;
 transition: all 0.15s;
 display: flex;
@@ -316,27 +397,29 @@ color: var(–text-muted);
 .diff-btn.active {
 background: var(–primary-soft);
 border-color: var(–primary);
+color: var(–primary-soft-text);
 }
-.diff-btn.active .diff-label { color: var(–primary); }
+.diff-btn.active .diff-label { color: var(–primary-soft-text); }
 
 /* ============ ADD BUTTON ============ */
 .add-btn {
 width: 100%;
-min-height: 52px;
+min-height: 54px;
 border-radius: var(–radius);
 background: var(–primary);
-color: #fff;
+color: var(–primary-contrast);
 font-size: 16px;
-font-weight: 600;
+font-weight: 700;
 margin-top: 16px;
 box-shadow: var(–shadow-md);
 display: flex;
 align-items: center;
 justify-content: center;
 gap: 8px;
-transition: background 0.15s;
+transition: background 0.15s, transform 0.08s;
 }
-.add-btn:active { background: var(–primary-hover); }
+.add-btn:active { background: var(–primary-hover); transform: scale(0.99); }
+.add-btn svg { width: 22px; height: 22px; }
 
 /* ============ EMPTY STATE ============ */
 .empty-state {
@@ -352,13 +435,13 @@ color: var(–text-muted);
 position: fixed;
 bottom: 24px;
 left: 50%;
-transform: translateX(-50%) translateY(100px);
+transform: translateX(-50%) translateY(120px);
 background: var(–text);
-color: #fff;
+color: var(–bg);
 padding: 12px 20px;
 border-radius: 24px;
 font-size: 14px;
-font-weight: 500;
+font-weight: 600;
 box-shadow: var(–shadow-md);
 transition: transform 0.3s ease;
 z-index: 100;
@@ -371,15 +454,16 @@ text-align: center;
 
 /* ============ RESPONSIVE BREAKPOINTS ============ */
 @media (max-width: 600px) {
-.action-row button, .action-row label { font-size: 12px; }
+.action-btn { font-size: 13px; }
 }
 @media (max-width: 380px) {
 main { padding: 12px; }
 .topbar { padding: 10px 12px 12px; }
 .stats-grid { gap: 6px; }
-.stat-field input { padding: 0 6px; font-size: 14px; }
+.stat-field input, .stat-field select { padding: 0 6px; font-size: 14px; }
 .diff-btn { font-size: 20px; }
 .diff-btn .diff-label { display: none; }
+.action-btn svg { display: none; }         /* Show label-only at narrowest width */
 }
 
 /* ============ FOOTER ============ */
@@ -390,23 +474,54 @@ color: var(–text-muted);
 padding: 16px;
 opacity: 0.7;
 }
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+*, *::before, *::after {
+transition: none !important;
+animation: none !important;
+}
+}
 </style>
 
 </head>
 <body>
+
+<!-- SVG icon library (reused via <use>) -->
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 002 2h8a2 2 0 002-2l1-13M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 20V8m0 0l-4 4m4-4l4 4M4 4h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
 
 <!-- ============ STICKY TOP BAR ============ -->
 
 <header class="topbar">
   <div class="topbar-title">Workout Tracker</div>
   <div class="date-row">
-    <button class="date-nav-btn" id="prevDayBtn" aria-label="Previous day">‹</button>
+    <button class="icon-btn" id="prevDayBtn" type="button" aria-label="Previous day">
+      <svg aria-hidden="true"><use href="#i-chev-left"/></svg>
+    </button>
     <input type="date" class="date-input" id="datePicker" aria-label="Select workout date">
-    <button class="date-nav-btn" id="nextDayBtn" aria-label="Next day">›</button>
+    <button class="icon-btn" id="nextDayBtn" type="button" aria-label="Next day">
+      <svg aria-hidden="true"><use href="#i-chev-right"/></svg>
+    </button>
   </div>
   <div class="action-row">
-    <button id="exportBtn" type="button">⬇ Export CSV</button>
-    <label for="importInput">⬆ Import CSV</label>
+    <button class="action-btn" id="exportBtn" type="button">
+      <svg aria-hidden="true"><use href="#i-download"/></svg>
+      <span>Export CSV</span>
+    </button>
+    <label class="action-btn" for="importInput">
+      <svg aria-hidden="true"><use href="#i-upload"/></svg>
+      <span>Import CSV</span>
+    </label>
     <input type="file" id="importInput" accept=".csv,text/csv" class="hidden">
   </div>
 </header>
@@ -414,44 +529,40 @@ opacity: 0.7;
 <!-- ============ MAIN CONTENT ============ -->
 
 <main>
-  <!-- Soreness prompt (shown only when previous workout exists) -->
   <section id="sorenessSection" class="hidden"></section>
-
   <div class="section-header">
     <span id="exerciseHeaderText">Exercises</span>
   </div>
-
-  <!-- Exercise list rendered here -->
-
   <div class="exercise-list" id="exerciseList"></div>
-
-  <!-- Add exercise button -->
-
   <button class="add-btn" id="addExerciseBtn" type="button">
-    <span style="font-size: 20px;">+</span> Add Exercise
+    <svg aria-hidden="true"><use href="#i-plus"/></svg>
+    Add Exercise
   </button>
 </main>
 
-<div class="footer">v1.0.0</div>
+<div class="footer">v1.1.0</div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 'use strict';
 
 /* ============================================================
-   WORKOUT TRACKER
+   WORKOUT TRACKER  v1.1.0
    Data Model (localStorage key: "workoutTracker.v1"):
    {
      "YYYY-MM-DD": {
        soreness: { isSore: boolean, areas: string[] },
        exercises: [
-         { name, sets, reps, weight, difficulty }
+         // Strength exercise:
+         { name, type: "strength", sets, reps, weight, difficulty }
+         // Cardio (run) exercise:
+         { name: "Run", type: "cardio", distance, unit: "km"|"mi", duration, difficulty }
        ]
      }
    }
+   `duration` is stored as minutes (number). UI collects MM:SS and converts.
    ============================================================ */
 
-// ---------- Constants ----------
 const STORAGE_KEY = 'workoutTracker.v1';
 const EXERCISE_PRESETS = ['Bench Press', 'Squat', 'Deadlift', 'Overhead Press', 'Run', 'Custom'];
 const SORENESS_AREAS = ['legs', 'arms', 'chest', 'back', 'shoulders', 'other'];
@@ -477,7 +588,6 @@ function todayISO() {
 }
 
 function escapeHtml(str) {
-  // XSS defense for any string rendered via innerHTML
   if (str == null) return '';
   return String(str)
     .replace(/&/g, '&amp;')
@@ -496,7 +606,6 @@ function showToast(msg) {
 }
 
 function shiftDate(iso, delta) {
-  // Shift an ISO date string by N days. Parse as local to avoid TZ drift.
   const [y, m, d] = iso.split('-').map(Number);
   const dt = new Date(y, m - 1, d);
   dt.setDate(dt.getDate() + delta);
@@ -504,6 +613,31 @@ function shiftDate(iso, delta) {
   const nm = String(dt.getMonth() + 1).padStart(2, '0');
   const nd = String(dt.getDate()).padStart(2, '0');
   return `${ny}-${nm}-${nd}`;
+}
+
+// Format stored duration (minutes, can be fractional) as "MM:SS" for display
+function minutesToMMSS(minutes) {
+  const mins = Number(minutes) || 0;
+  if (mins <= 0) return '';
+  const totalSec = Math.round(mins * 60);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+// Parse "MM:SS" or "MM" or decimal minutes like "30.5" -> minutes (number)
+function parseDuration(str) {
+  if (str == null) return 0;
+  const s = String(str).trim();
+  if (!s) return 0;
+  if (s.includes(':')) {
+    const parts = s.split(':');
+    const m = Number(parts[0]) || 0;
+    const sec = Number(parts[1]) || 0;
+    return m + (sec / 60);
+  }
+  const n = Number(s);
+  return isNaN(n) ? 0 : n;
 }
 
 // ---------- Storage ----------
@@ -529,31 +663,31 @@ function saveData() {
 }
 
 function getDayEntry(iso) {
-  // Lazily create the entry for a given date.
   if (!state.data[iso]) {
     state.data[iso] = {
       soreness: { isSore: false, areas: [] },
       exercises: []
     };
   }
-  // Defensive: ensure shape is intact (in case of imported data).
   const entry = state.data[iso];
   if (!entry.soreness || typeof entry.soreness !== 'object') {
     entry.soreness = { isSore: false, areas: [] };
   }
   if (!Array.isArray(entry.soreness.areas)) entry.soreness.areas = [];
   if (!Array.isArray(entry.exercises)) entry.exercises = [];
+  // Migrate any legacy exercises without a `type` field
+  entry.exercises.forEach(ex => {
+    if (!ex.type) ex.type = (ex.name === 'Run') ? 'cardio' : 'strength';
+  });
   return entry;
 }
 
 function hasAnyContent(iso) {
-  // A date "exists" for soreness-prompt purposes only if it has exercises.
   const e = state.data[iso];
   return !!(e && Array.isArray(e.exercises) && e.exercises.length > 0);
 }
 
 function getMostRecentPreviousWorkoutDate(iso) {
-  // Find the latest ISO key that is < iso AND has exercises logged.
   const keys = Object.keys(state.data)
     .filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && k < iso && hasAnyContent(k))
     .sort();
@@ -561,14 +695,11 @@ function getMostRecentPreviousWorkoutDate(iso) {
 }
 
 function pruneEmptyDate(iso) {
-  // Remove a date key if it contains nothing worth keeping. Keeps storage tidy.
   const e = state.data[iso];
   if (!e) return;
   const noExercises = !e.exercises || e.exercises.length === 0;
   const noSoreness = !e.soreness || (!e.soreness.isSore && (!e.soreness.areas || e.soreness.areas.length === 0));
-  if (noExercises && noSoreness) {
-    delete state.data[iso];
-  }
+  if (noExercises && noSoreness) delete state.data[iso];
 }
 
 // ---------- Rendering ----------
@@ -590,7 +721,6 @@ function renderSoreness() {
   const prevDate = getMostRecentPreviousWorkoutDate(state.currentDate);
 
   if (!prevDate) {
-    // No prior workout → hide soreness prompt.
     section.classList.add('hidden');
     section.innerHTML = '';
     return;
@@ -617,9 +747,7 @@ function renderSoreness() {
         <div class="soreness-areas">
           <div class="area-chips">
             ${SORENESS_AREAS.map(a => {
-              const active = a === 'other'
-                ? hasOther
-                : areas.includes(a);
+              const active = a === 'other' ? hasOther : areas.includes(a);
               return `<button type="button" class="chip ${active ? 'active' : ''}" data-area="${escapeHtml(a)}">${escapeHtml(a)}</button>`;
             }).join('')}
           </div>
@@ -633,7 +761,6 @@ function renderSoreness() {
     </div>
   `;
 
-  // Wire up soreness toggles
   section.querySelectorAll('.toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const val = btn.dataset.sore === 'true';
@@ -644,24 +771,20 @@ function renderSoreness() {
     });
   });
 
-  // Wire up area chips
   section.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      const area = chip.dataset.area;
-      toggleSorenessArea(area);
+      toggleSorenessArea(chip.dataset.area);
       renderSoreness();
     });
   });
 
-  // Wire up "other" text input
   const otherInput = section.querySelector('#otherAreaInput');
   if (otherInput) {
     otherInput.addEventListener('input', () => {
-      const entry = getDayEntry(state.currentDate);
-      // Remove any existing other entries
-      entry.soreness.areas = entry.soreness.areas.filter(a => a !== 'other' && !a.startsWith('other:'));
+      const e = getDayEntry(state.currentDate);
+      e.soreness.areas = e.soreness.areas.filter(a => a !== 'other' && !a.startsWith('other:'));
       const txt = otherInput.value.trim();
-      entry.soreness.areas.push(txt ? `other:${txt}` : 'other');
+      e.soreness.areas.push(txt ? `other:${txt}` : 'other');
       saveAndPrune();
     });
   }
@@ -703,22 +826,23 @@ function renderExercises() {
 
   list.innerHTML = exercises.map((ex, idx) => renderExerciseCard(ex, idx)).join('');
 
-  // Attach event listeners (avoid inline handlers for XSS safety)
+  // --- Wire up all card events ---
   list.querySelectorAll('[data-action="select-exercise"]').forEach(sel => {
     sel.addEventListener('change', (e) => {
       const idx = Number(e.target.dataset.idx);
-      updateExerciseField(idx, 'name', e.target.value);
-      renderExercises(); // re-render to show/hide custom input
+      updateExerciseName(idx, e.target.value);
+      renderExercises();
     });
   });
 
   list.querySelectorAll('[data-action="custom-name"]').forEach(inp => {
     inp.addEventListener('input', (e) => {
       const idx = Number(e.target.dataset.idx);
-      updateExerciseField(idx, 'customName', e.target.value);
+      updateCustomName(idx, e.target.value);
     });
   });
 
+  // Numeric stat fields (sets, reps, weight, distance)
   list.querySelectorAll('[data-action="stat"]').forEach(inp => {
     inp.addEventListener('input', (e) => {
       const idx = Number(e.target.dataset.idx);
@@ -728,26 +852,40 @@ function renderExercises() {
     });
   });
 
+  // Duration text field (accepts MM:SS or decimal minutes)
+  list.querySelectorAll('[data-action="duration"]').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const idx = Number(e.target.dataset.idx);
+      updateExerciseField(idx, 'duration', parseDuration(e.target.value));
+    });
+  });
+
+  // Unit dropdown (km/mi)
+  list.querySelectorAll('[data-action="unit"]').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const idx = Number(e.target.dataset.idx);
+      updateExerciseField(idx, 'unit', e.target.value);
+    });
+  });
+
   list.querySelectorAll('[data-action="difficulty"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', () => {
       const idx = Number(btn.dataset.idx);
-      const diff = btn.dataset.diff;
-      updateExerciseField(idx, 'difficulty', diff);
+      updateExerciseField(idx, 'difficulty', btn.dataset.diff);
       renderExercises();
     });
   });
 
   list.querySelectorAll('[data-action="delete"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = Number(btn.dataset.idx);
-      deleteExercise(idx);
-    });
+    btn.addEventListener('click', () => deleteExercise(Number(btn.dataset.idx)));
   });
 }
 
 function renderExerciseCard(ex, idx) {
-  // Determine whether this is a custom exercise or a preset
-  const isCustom = !EXERCISE_PRESETS.slice(0, -1).includes(ex.name) || ex._isCustom;
+  // Determine preset vs custom
+  // "Run" is a preset but has its own field schema (cardio)
+  const presetNonCustom = EXERCISE_PRESETS.slice(0, -1); // everything except "Custom"
+  const isCustom = !presetNonCustom.includes(ex.name) || ex._isCustom;
   const selectValue = isCustom ? 'Custom' : ex.name;
   const customName = isCustom ? ex.name : (ex.customName || '');
 
@@ -755,13 +893,21 @@ function renderExerciseCard(ex, idx) {
     `<option value="${escapeHtml(name)}" ${selectValue === name ? 'selected' : ''}>${escapeHtml(name)}</option>`
   ).join('');
 
+  // Branch on exercise type: cardio shows distance + unit + time; strength shows sets/reps/weight
+  const isCardio = ex.type === 'cardio' || ex.name === 'Run';
+  const fieldsHtml = isCardio
+    ? renderCardioFields(ex, idx)
+    : renderStrengthFields(ex, idx);
+
   return `
     <div class="exercise-card" data-idx="${idx}">
       <div class="exercise-card-header">
         <select class="exercise-select" data-action="select-exercise" data-idx="${idx}" aria-label="Exercise">
           ${optionsHtml}
         </select>
-        <button type="button" class="delete-btn" data-action="delete" data-idx="${idx}" aria-label="Delete exercise">×</button>
+        <button type="button" class="delete-btn" data-action="delete" data-idx="${idx}" aria-label="Delete exercise">
+          <svg aria-hidden="true"><use href="#i-trash"/></svg>
+        </button>
       </div>
 
       ${isCustom ? `
@@ -769,20 +915,7 @@ function renderExerciseCard(ex, idx) {
                placeholder="Exercise name" value="${escapeHtml(customName)}">
       ` : ''}
 
-      <div class="stats-grid">
-        <div class="stat-field">
-          <label>Sets</label>
-          <input type="number" inputmode="numeric" min="0" data-action="stat" data-field="sets" data-idx="${idx}" value="${Number(ex.sets) || 0}">
-        </div>
-        <div class="stat-field">
-          <label>Reps</label>
-          <input type="number" inputmode="numeric" min="0" data-action="stat" data-field="reps" data-idx="${idx}" value="${Number(ex.reps) || 0}">
-        </div>
-        <div class="stat-field">
-          <label>Weight</label>
-          <input type="number" inputmode="decimal" min="0" step="0.5" data-action="stat" data-field="weight" data-idx="${idx}" value="${Number(ex.weight) || 0}">
-        </div>
-      </div>
+      ${fieldsHtml}
 
       <div class="difficulty-row">
         ${DIFFICULTIES.map(d => `
@@ -798,36 +931,121 @@ function renderExerciseCard(ex, idx) {
   `;
 }
 
+function renderStrengthFields(ex, idx) {
+  return `
+    <div class="stats-grid">
+      <div class="stat-field">
+        <label>Sets</label>
+        <input type="number" inputmode="numeric" min="0" data-action="stat" data-field="sets" data-idx="${idx}" value="${Number(ex.sets) || 0}">
+      </div>
+      <div class="stat-field">
+        <label>Reps</label>
+        <input type="number" inputmode="numeric" min="0" data-action="stat" data-field="reps" data-idx="${idx}" value="${Number(ex.reps) || 0}">
+      </div>
+      <div class="stat-field">
+        <label>Weight</label>
+        <input type="number" inputmode="decimal" min="0" step="0.5" data-action="stat" data-field="weight" data-idx="${idx}" value="${Number(ex.weight) || 0}">
+      </div>
+    </div>
+  `;
+}
+
+function renderCardioFields(ex, idx) {
+  const unit = (ex.unit === 'mi') ? 'mi' : 'km';
+  const distance = Number(ex.distance) || 0;
+  const durationDisplay = minutesToMMSS(ex.duration);
+  return `
+    <div class="stats-grid">
+      <div class="stat-field">
+        <label>Distance</label>
+        <input type="number" inputmode="decimal" min="0" step="0.1" data-action="stat" data-field="distance" data-idx="${idx}" value="${distance}">
+      </div>
+      <div class="stat-field">
+        <label>Unit</label>
+        <select data-action="unit" data-idx="${idx}" aria-label="Distance unit">
+          <option value="km" ${unit === 'km' ? 'selected' : ''}>km</option>
+          <option value="mi" ${unit === 'mi' ? 'selected' : ''}>mi</option>
+        </select>
+      </div>
+      <div class="stat-field">
+        <label>Time (mm:ss)</label>
+        <input type="text" inputmode="numeric" pattern="[0-9:]*" placeholder="30:00" data-action="duration" data-idx="${idx}" value="${escapeHtml(durationDisplay)}">
+      </div>
+    </div>
+  `;
+}
+
 // ---------- Mutations ----------
-function updateExerciseField(idx, field, value) {
+// Handle the exercise-type select dropdown changing. This is separate from
+// generic field updates because switching to/from "Run" also swaps the schema.
+function updateExerciseName(idx, value) {
   const entry = getDayEntry(state.currentDate);
   const ex = entry.exercises[idx];
   if (!ex) return;
 
-  if (field === 'name') {
-    // Switching select: "Custom" means keep name empty until user types
-    if (value === 'Custom') {
-      ex._isCustom = true;
-      ex.name = ex.customName || '';
-    } else {
-      ex._isCustom = false;
-      ex.name = value;
-    }
-  } else if (field === 'customName') {
-    ex.customName = value;
+  if (value === 'Custom') {
     ex._isCustom = true;
-    ex.name = value;
+    ex.type = 'strength';
+    ex.name = ex.customName || '';
+    ensureStrengthShape(ex);
+  } else if (value === 'Run') {
+    ex._isCustom = false;
+    ex.name = 'Run';
+    ex.type = 'cardio';
+    ensureCardioShape(ex);
   } else {
-    ex[field] = value;
+    ex._isCustom = false;
+    ex.name = value;
+    ex.type = 'strength';
+    ensureStrengthShape(ex);
   }
   saveData();
   renderHeaderCount();
+}
+
+function updateCustomName(idx, value) {
+  const entry = getDayEntry(state.currentDate);
+  const ex = entry.exercises[idx];
+  if (!ex) return;
+  ex.customName = value;
+  ex._isCustom = true;
+  ex.name = value;
+  saveData();
+}
+
+function updateExerciseField(idx, field, value) {
+  const entry = getDayEntry(state.currentDate);
+  const ex = entry.exercises[idx];
+  if (!ex) return;
+  ex[field] = value;
+  saveData();
+}
+
+// Ensure strength shape: default counts, clear cardio fields so CSV export stays clean
+function ensureStrengthShape(ex) {
+  if (ex.sets == null) ex.sets = 3;
+  if (ex.reps == null) ex.reps = 10;
+  if (ex.weight == null) ex.weight = 0;
+  delete ex.distance;
+  delete ex.unit;
+  delete ex.duration;
+}
+
+// Ensure cardio shape: default unit/distance/time, clear strength fields
+function ensureCardioShape(ex) {
+  if (ex.distance == null) ex.distance = 0;
+  if (!ex.unit) ex.unit = 'km';
+  if (ex.duration == null) ex.duration = 0;
+  delete ex.sets;
+  delete ex.reps;
+  delete ex.weight;
 }
 
 function addExercise() {
   const entry = getDayEntry(state.currentDate);
   entry.exercises.push({
     name: 'Bench Press',
+    type: 'strength',
     sets: 3,
     reps: 10,
     weight: 0,
@@ -852,16 +1070,15 @@ function saveAndPrune() {
 
 // ---------- CSV Export ----------
 function csvEscape(val) {
-  // RFC 4180: wrap in quotes if contains comma/quote/newline, and double-up quotes.
   const s = val == null ? '' : String(val);
-  if (/[",\n\r]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }
 
 function exportCSV() {
-  const headers = ['date', 'exercise', 'sets', 'reps', 'weight', 'difficulty', 'sore', 'sore_areas'];
+  // Columns now include distance/unit/duration for cardio rows.
+  // Strength rows leave those blank; cardio rows leave sets/reps/weight blank.
+  const headers = ['date', 'exercise', 'type', 'sets', 'reps', 'weight', 'distance', 'distance_unit', 'duration_min', 'difficulty', 'sore', 'sore_areas'];
   const rows = [headers.join(',')];
 
   const dates = Object.keys(state.data).sort();
@@ -877,10 +1094,9 @@ function exportCSV() {
     const exercises = Array.isArray(entry.exercises) ? entry.exercises : [];
 
     if (exercises.length === 0) {
-      // Still export a row if soreness data exists (keeps round-trip lossless)
       if (sore || areas) {
         rows.push([
-          csvEscape(date), '', '', '', '', '',
+          csvEscape(date), '', '', '', '', '', '', '', '', '',
           csvEscape(sore), csvEscape(areas)
         ].join(','));
         totalRows++;
@@ -888,14 +1104,18 @@ function exportCSV() {
       continue;
     }
 
-    // One row per exercise
     for (const ex of exercises) {
+      const isCardio = ex.type === 'cardio' || ex.name === 'Run';
       rows.push([
         csvEscape(date),
         csvEscape(ex.name || ''),
-        csvEscape(Number(ex.sets) || 0),
-        csvEscape(Number(ex.reps) || 0),
-        csvEscape(Number(ex.weight) || 0),
+        csvEscape(isCardio ? 'cardio' : 'strength'),
+        csvEscape(isCardio ? '' : (Number(ex.sets) || 0)),
+        csvEscape(isCardio ? '' : (Number(ex.reps) || 0)),
+        csvEscape(isCardio ? '' : (Number(ex.weight) || 0)),
+        csvEscape(isCardio ? (Number(ex.distance) || 0) : ''),
+        csvEscape(isCardio ? (ex.unit || 'km') : ''),
+        csvEscape(isCardio ? (Number(ex.duration) || 0) : ''),
         csvEscape(ex.difficulty || ''),
         csvEscape(sore),
         csvEscape(areas)
@@ -904,10 +1124,7 @@ function exportCSV() {
     }
   }
 
-  if (totalRows === 0) {
-    showToast('No data to export');
-    return;
-  }
+  if (totalRows === 0) { showToast('No data to export'); return; }
 
   const csv = rows.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
@@ -924,7 +1141,7 @@ function exportCSV() {
 
 // ---------- CSV Import ----------
 function parseCSV(text) {
-  // RFC 4180-ish parser. Handles quoted fields, escaped quotes, newlines in quotes.
+  // RFC 4180-ish parser. Handles quoted fields, escaped quotes, embedded newlines.
   const rows = [];
   let row = [];
   let field = '';
@@ -934,7 +1151,6 @@ function parseCSV(text) {
 
   while (i < len) {
     const ch = text[i];
-
     if (inQuotes) {
       if (ch === '"') {
         if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
@@ -942,60 +1158,43 @@ function parseCSV(text) {
       }
       field += ch; i++; continue;
     }
-
     if (ch === '"') { inQuotes = true; i++; continue; }
     if (ch === ',') { row.push(field); field = ''; i++; continue; }
     if (ch === '\r') { i++; continue; }
-    if (ch === '\n') {
-      row.push(field); rows.push(row);
-      row = []; field = ''; i++; continue;
-    }
+    if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
     field += ch; i++;
   }
-  // Flush final field/row
-  if (field.length > 0 || row.length > 0) {
-    row.push(field);
-    rows.push(row);
-  }
-  // Drop fully empty trailing rows
+  if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
   return rows.filter(r => !(r.length === 1 && r[0] === ''));
 }
 
 function importCSV(text) {
   let parsed;
-  try {
-    parsed = parseCSV(text);
-  } catch (e) {
-    showToast('Could not parse CSV');
-    return;
-  }
+  try { parsed = parseCSV(text); }
+  catch (e) { showToast('Could not parse CSV'); return; }
 
-  if (!parsed || parsed.length < 2) {
-    showToast('CSV is empty or invalid');
-    return;
-  }
+  if (!parsed || parsed.length < 2) { showToast('CSV is empty or invalid'); return; }
 
   const header = parsed[0].map(h => String(h || '').trim().toLowerCase());
   const idx = (name) => header.indexOf(name);
-  const iDate = idx('date');
-  const iExercise = idx('exercise');
-  const iSets = idx('sets');
-  const iReps = idx('reps');
-  const iWeight = idx('weight');
+  const iDate       = idx('date');
+  const iExercise   = idx('exercise');
+  const iType       = idx('type');
+  const iSets       = idx('sets');
+  const iReps       = idx('reps');
+  const iWeight     = idx('weight');
+  const iDistance   = idx('distance');
+  const iUnit       = idx('distance_unit');
+  const iDuration   = idx('duration_min');
   const iDifficulty = idx('difficulty');
-  const iSore = idx('sore');
-  const iAreas = idx('sore_areas');
+  const iSore       = idx('sore');
+  const iAreas      = idx('sore_areas');
 
-  if (iDate === -1) {
-    showToast('CSV missing "date" column');
-    return;
-  }
+  if (iDate === -1) { showToast('CSV missing "date" column'); return; }
 
   let imported = 0;
   let skipped = 0;
-  // Track which dates came from CSV so we can replace their exercises wholesale
-  // (otherwise re-importing would duplicate rows). Soreness is overwritten per-date.
-  const touchedDates = new Set();
+  const touchedDates = new Set(); // Idempotent re-import: wipe exercises on first touch
 
   for (let r = 1; r < parsed.length; r++) {
     const row = parsed[r];
@@ -1004,8 +1203,6 @@ function importCSV(text) {
     const date = (row[iDate] || '').trim();
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { skipped++; continue; }
 
-    // First time we touch this date from CSV: reset its exercises list.
-    // This means re-importing the same CSV is idempotent.
     if (!touchedDates.has(date)) {
       touchedDates.add(date);
       const existing = state.data[date] || {};
@@ -1016,41 +1213,63 @@ function importCSV(text) {
         exercises: []
       };
     }
-
     const entry = state.data[date];
 
-    // Soreness: take the first non-empty value seen for this date in the CSV
+    // Soreness — first non-empty wins per date
     if (iSore !== -1 && row[iSore] != null && String(row[iSore]).trim() !== '') {
-      const soreVal = String(row[iSore]).trim().toLowerCase();
-      entry.soreness.isSore = (soreVal === 'true' || soreVal === '1' || soreVal === 'yes');
+      const v = String(row[iSore]).trim().toLowerCase();
+      entry.soreness.isSore = (v === 'true' || v === '1' || v === 'yes');
     }
     if (iAreas !== -1 && row[iAreas] != null && String(row[iAreas]).trim() !== '') {
       entry.soreness.areas = String(row[iAreas]).split('|').map(s => s.trim()).filter(Boolean);
     }
 
-    // Exercise row (skip if exercise name is blank — that's a soreness-only row)
     const exName = iExercise !== -1 ? (row[iExercise] || '').trim() : '';
-    if (exName) {
+    if (!exName) continue; // soreness-only row
+
+    // Determine type: explicit column wins, else fall back to name
+    let type = 'strength';
+    if (iType !== -1 && row[iType]) {
+      const t = String(row[iType]).trim().toLowerCase();
+      if (t === 'cardio' || t === 'strength') type = t;
+    } else if (exName.toLowerCase() === 'run') {
+      type = 'cardio';
+    }
+
+    const diff = iDifficulty !== -1 ? String(row[iDifficulty] || '').trim().toLowerCase() : 'medium';
+    const safeDiff = ['easy','medium','hard'].includes(diff) ? diff : 'medium';
+
+    if (type === 'cardio') {
+      const distance = iDistance !== -1 ? Number(row[iDistance]) : 0;
+      const rawUnit  = iUnit !== -1 ? String(row[iUnit] || '').trim().toLowerCase() : 'km';
+      const unit     = (rawUnit === 'mi') ? 'mi' : 'km';
+      const duration = iDuration !== -1 ? Number(row[iDuration]) : 0;
+      entry.exercises.push({
+        name: exName,
+        type: 'cardio',
+        distance: isNaN(distance) ? 0 : distance,
+        unit,
+        duration: isNaN(duration) ? 0 : duration,
+        difficulty: safeDiff
+      });
+    } else {
       const sets = iSets !== -1 ? Number(row[iSets]) : 0;
       const reps = iReps !== -1 ? Number(row[iReps]) : 0;
       const weight = iWeight !== -1 ? Number(row[iWeight]) : 0;
-      const diff = iDifficulty !== -1 ? String(row[iDifficulty] || '').trim().toLowerCase() : 'medium';
-      const safeDiff = ['easy','medium','hard'].includes(diff) ? diff : 'medium';
-
       entry.exercises.push({
         name: exName,
+        type: 'strength',
         sets: isNaN(sets) ? 0 : sets,
         reps: isNaN(reps) ? 0 : reps,
         weight: isNaN(weight) ? 0 : weight,
         difficulty: safeDiff
       });
-      imported++;
     }
+    imported++;
   }
 
   saveData();
   render();
-
   const msg = skipped > 0
     ? `Imported ${imported} row${imported === 1 ? '' : 's'} (${skipped} skipped)`
     : `Imported ${imported} row${imported === 1 ? '' : 's'}`;
@@ -1091,7 +1310,6 @@ function initEvents() {
     reader.onload = (ev) => importCSV(String(ev.target.result || ''));
     reader.onerror = () => showToast('Failed to read file');
     reader.readAsText(file);
-    // Clear so the same file can be re-selected
     importInput.value = '';
   });
 }
