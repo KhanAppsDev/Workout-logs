@@ -1,279 +1,1112 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forge // Vision & Time</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --bg: #0b0b0c; --card: #141417; --border: #232326;
-            --text: #e1e1e6; --dim: #a1a1aa; --accent: #3b82f6; --gold: #f59e0b;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        
-        .dashboard { display: grid; grid-template-columns: 1fr 340px; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
-        @media (max-width: 1100px) { .dashboard { grid-template-columns: 1fr; } }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<title>Workout Tracker</title>
+<style>
+  /* ============ RESET & BASE ============ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface-2: #f1f4f9;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-soft: #eef2ff;
+    --danger: #ef4444;
+    --danger-soft: #fee2e2;
+    --success: #10b981;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --tap: 44px;
+  }
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  body {
+    max-width: 640px;
+    margin: 0 auto;
+    padding-bottom: 120px;
+    min-height: 100vh;
+    background: var(--bg);
+  }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input, select { font-family: inherit; font-size: 16px; color: var(--text); }
+  input:focus, select:focus, button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-        h2 { font-size: 0.75rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+/* ============ STICKY TOP BAR ============ */
+.topbar {
+position: sticky;
+top: 0;
+z-index: 20;
+background: var(–surface);
+border-bottom: 1px solid var(–border);
+padding: 12px 16px 14px;
+box-shadow: var(–shadow-sm);
+}
+.topbar-title {
+font-size: 13px;
+font-weight: 600;
+color: var(–text-muted);
+text-transform: uppercase;
+letter-spacing: 0.06em;
+margin-bottom: 6px;
+}
+.date-row {
+display: flex;
+gap: 8px;
+align-items: center;
+}
+.date-input {
+flex: 1;
+min-height: var(–tap);
+padding: 0 12px;
+border: 1px solid var(–border);
+border-radius: var(–radius-sm);
+background: var(–surface);
+font-weight: 600;
+font-size: 16px;
+}
+.date-nav-btn {
+min-width: var(–tap);
+min-height: var(–tap);
+border: 1px solid var(–border);
+border-radius: var(–radius-sm);
+background: var(–surface);
+font-size: 20px;
+font-weight: 600;
+color: var(–text-muted);
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.date-nav-btn:active { background: var(–surface-2); }
+.action-row {
+display: flex;
+gap: 8px;
+margin-top: 10px;
+}
+.action-row button, .action-row label {
+flex: 1;
+min-height: 40px;
+border-radius: var(–radius-sm);
+font-size: 13px;
+font-weight: 600;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 4px;
+padding: 0 8px;
+border: 1px solid var(–border);
+background: var(–surface);
+color: var(–text-muted);
+cursor: pointer;
+}
+.action-row button:active, .action-row label:active { background: var(–surface-2); }
 
-        /* Scrollable Calendar */
-        .calendar-container {
-            display: flex; overflow-x: auto; gap: 20px; padding-bottom: 15px;
-            scroll-snap-type: x mandatory; scrollbar-width: thin;
-        }
-        .calendar-month-chunk { flex: 0 0 280px; scroll-snap-align: start; }
-        .month-label { font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; color: var(--accent); }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .cal-day { 
-            aspect-ratio: 1; border: 1px solid var(--border); border-radius: 4px; 
-            display: flex; align-items: center; justify-content: center; font-size: 0.7rem; 
-            cursor: pointer; position: relative;
-        }
-        .cal-day.active { background: var(--accent); color: white; }
-        .cal-day.has-photo::after { content: ''; position: absolute; bottom: 2px; right: 2px; width: 4px; height: 4px; background: var(--gold); border-radius: 50%; }
+/* ============ MAIN CONTENT ============ */
+main { padding: 16px; }
+.section-header {
+font-size: 14px;
+font-weight: 600;
+color: var(–text-muted);
+text-transform: uppercase;
+letter-spacing: 0.05em;
+margin: 8px 4px 10px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
 
-        /* Timelapse Player */
-        #timelapseContainer { text-align: center; }
-        #timelapseFrame { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+/* ============ SORENESS PROMPT ============ */
+.soreness-card {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: var(–radius);
+padding: 14px;
+margin-bottom: 16px;
+box-shadow: var(–shadow-sm);
+}
+.soreness-question {
+font-size: 15px;
+font-weight: 600;
+margin-bottom: 10px;
+}
+.soreness-sub {
+font-size: 13px;
+color: var(–text-muted);
+font-weight: 400;
+margin-top: 2px;
+}
+.toggle-row {
+display: flex;
+gap: 8px;
+}
+.toggle-btn {
+flex: 1;
+min-height: var(–tap);
+border: 1px solid var(–border);
+border-radius: var(–radius-sm);
+background: var(–surface);
+font-weight: 600;
+font-size: 15px;
+transition: all 0.15s;
+}
+.toggle-btn.active {
+background: var(–primary);
+color: #fff;
+border-color: var(–primary);
+}
+.soreness-areas {
+margin-top: 12px;
+padding-top: 12px;
+border-top: 1px solid var(–border);
+}
+.area-chips {
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+}
+.chip {
+min-height: 36px;
+padding: 0 14px;
+border: 1px solid var(–border);
+border-radius: 18px;
+background: var(–surface-2);
+font-size: 14px;
+font-weight: 500;
+color: var(–text);
+text-transform: capitalize;
+}
+.chip.active {
+background: var(–primary);
+color: #fff;
+border-color: var(–primary);
+}
+.other-input {
+margin-top: 10px;
+width: 100%;
+min-height: var(–tap);
+padding: 0 12px;
+border: 1px solid var(–border);
+border-radius: var(–radius-sm);
+background: var(–surface);
+}
 
-        /* UI elements */
-        .btn { padding: 10px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; font-size: 0.8rem; transition: 0.2s; }
-        .btn-prime { background: var(--accent); color: white; }
-        .btn-gold { background: var(--gold); color: black; }
-        .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--dim); }
-        textarea { width: 100%; height: 150px; background: #000; color: #00ff41; border: 1px solid var(--border); padding: 10px; font-family: monospace; border-radius: 6px; }
-        
-        #modalOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal { background: var(--card); width: 95%; max-width: 450px; border-radius: 12px; padding: 25px; }
-        #toast { position: fixed; top: 20px; right: 20px; background: var(--accent); color: white; padding: 10px 20px; border-radius: 8px; transform: translateX(250%); transition: 0.3s; z-index: 2000; }
-    </style>
+/* ============ EXERCISE LIST ============ */
+.exercise-list {
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+.exercise-card {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: var(–radius);
+padding: 14px;
+box-shadow: var(–shadow-sm);
+position: relative;
+}
+.exercise-card-header {
+display: flex;
+gap: 8px;
+align-items: center;
+margin-bottom: 10px;
+}
+.exercise-select {
+flex: 1;
+min-height: var(–tap);
+padding: 0 10px;
+border: 1px solid var(–border);
+border-radius: var(–radius-sm);
+background: var(–surface);
+font-weight: 600;
+font-size: 15px;
+}
+.delete-btn {
+min-width: var(–tap);
+min-height: var(–tap);
+border-radius: var(–radius-sm);
+background: var(–danger-soft);
+color: var(–danger);
+font-size: 20px;
+display: flex;
+align-items: center;
+justify-content: center;
+flex-shrink: 0;
+}
+.delete-btn:active { background: #fecaca; }
+.custom-name-input {
+width: 100%;
+min-height: var(–tap);
+padding: 0 12px;
+border: 1px solid var(–border);
+border-radius: var(–radius-sm);
+background: var(–surface);
+margin-bottom: 10px;
+font-size: 15px;
+}
+.stats-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 8px;
+margin-bottom: 10px;
+}
+.stat-field label {
+display: block;
+font-size: 11px;
+font-weight: 600;
+color: var(–text-muted);
+text-transform: uppercase;
+letter-spacing: 0.05em;
+margin-bottom: 4px;
+}
+.stat-field input {
+width: 100%;
+min-height: var(–tap);
+padding: 0 10px;
+border: 1px solid var(–border);
+border-radius: var(–radius-sm);
+background: var(–surface);
+font-size: 15px;
+font-weight: 600;
+text-align: center;
+}
+/* Hide number input spinners */
+.stat-field input[type=“number”]::-webkit-outer-spin-button,
+.stat-field input[type=“number”]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.stat-field input[type=“number”] { -moz-appearance: textfield; }
+
+.difficulty-row {
+display: flex;
+gap: 8px;
+}
+.diff-btn {
+flex: 1;
+min-height: var(–tap);
+border: 1px solid var(–border);
+border-radius: var(–radius-sm);
+background: var(–surface-2);
+font-size: 22px;
+transition: all 0.15s;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+}
+.diff-btn .diff-label {
+font-size: 12px;
+font-weight: 600;
+color: var(–text-muted);
+}
+.diff-btn.active {
+background: var(–primary-soft);
+border-color: var(–primary);
+}
+.diff-btn.active .diff-label { color: var(–primary); }
+
+/* ============ ADD BUTTON ============ */
+.add-btn {
+width: 100%;
+min-height: 52px;
+border-radius: var(–radius);
+background: var(–primary);
+color: #fff;
+font-size: 16px;
+font-weight: 600;
+margin-top: 16px;
+box-shadow: var(–shadow-md);
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+transition: background 0.15s;
+}
+.add-btn:active { background: var(–primary-hover); }
+
+/* ============ EMPTY STATE ============ */
+.empty-state {
+text-align: center;
+padding: 40px 20px;
+color: var(–text-muted);
+}
+.empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 15px; }
+
+/* ============ TOAST ============ */
+.toast {
+position: fixed;
+bottom: 24px;
+left: 50%;
+transform: translateX(-50%) translateY(100px);
+background: var(–text);
+color: #fff;
+padding: 12px 20px;
+border-radius: 24px;
+font-size: 14px;
+font-weight: 500;
+box-shadow: var(–shadow-md);
+transition: transform 0.3s ease;
+z-index: 100;
+max-width: 90vw;
+text-align: center;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.hidden { display: none !important; }
+
+/* ============ RESPONSIVE BREAKPOINTS ============ */
+@media (max-width: 600px) {
+.action-row button, .action-row label { font-size: 12px; }
+}
+@media (max-width: 380px) {
+main { padding: 12px; }
+.topbar { padding: 10px 12px 12px; }
+.stats-grid { gap: 6px; }
+.stat-field input { padding: 0 6px; font-size: 14px; }
+.diff-btn { font-size: 20px; }
+.diff-btn .diff-label { display: none; }
+}
+
+/* ============ FOOTER ============ */
+.footer {
+text-align: center;
+font-size: 11px;
+color: var(–text-muted);
+padding: 16px;
+opacity: 0.7;
+}
+</style>
+
 </head>
 <body>
 
-<div id="toast">Update Sent</div>
-<div id="modalOverlay" onclick="closeModal()"><div class="modal" id="modalContent" onclick="event.stopPropagation()"></div></div>
+<!-- ============ STICKY TOP BAR ============ -->
 
-<div class="dashboard">
-    <main>
-        <div class="card">
-            <h2>Data & Image Ingestion</h2>
-            <textarea id="logInput" placeholder="Paste logs or JSON here..."></textarea>
-            <div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
-                <button class="btn btn-prime" onclick="ingest()">Save Log</button>
-                <input type="file" id="imgIn" hidden onchange="uploadImage(event)">
-                <button class="btn btn-ghost" onclick="document.getElementById('imgIn').click()">📷 Upload Photo</button>
-                <span id="upStatus" style="font-size:0.7rem; color:var(--gold)"></span>
-            </div>
-        </div>
+<header class="topbar">
+  <div class="topbar-title">Workout Tracker</div>
+  <div class="date-row">
+    <button class="date-nav-btn" id="prevDayBtn" aria-label="Previous day">‹</button>
+    <input type="date" class="date-input" id="datePicker" aria-label="Select workout date">
+    <button class="date-nav-btn" id="nextDayBtn" aria-label="Next day">›</button>
+  </div>
+  <div class="action-row">
+    <button id="exportBtn" type="button">⬇ Export CSV</button>
+    <label for="importInput">⬆ Import CSV</label>
+    <input type="file" id="importInput" accept=".csv,text/csv" class="hidden">
+  </div>
+</header>
 
-        <div class="card">
-            <h2>Activity History</h2>
-            <div id="calendarContainer" class="calendar-container"></div>
-        </div>
+<!-- ============ MAIN CONTENT ============ -->
 
-        <div class="card">
-            <select id="exSelect" onchange="draw()"></select>
-            <div style="height:300px;"><canvas id="mainChart"></canvas></div>
-        </div>
-    </main>
+<main>
+  <!-- Soreness prompt (shown only when previous workout exists) -->
+  <section id="sorenessSection" class="hidden"></section>
 
-    <aside>
-        <div class="card">
-            <h2>Visual Progress</h2>
-            <button class="btn btn-gold" style="width:100%" onclick="startTimelapse()">▶ Play Timelapse</button>
-            <div id="stats" style="margin-top:20px; font-size:0.8rem; color:var(--dim)"></div>
-        </div>
-        <div class="card">
-            <button class="btn btn-ghost" style="width:100%" onclick="exportJSON()">Backup Database</button>
-        </div>
-    </aside>
-</div>
+  <div class="section-header">
+    <span id="exerciseHeaderText">Exercises</span>
+  </div>
+
+  <!-- Exercise list rendered here -->
+
+  <div class="exercise-list" id="exerciseList"></div>
+
+  <!-- Add exercise button -->
+
+  <button class="add-btn" id="addExerciseBtn" type="button">
+    <span style="font-size: 20px;">+</span> Add Exercise
+  </button>
+</main>
+
+<div class="footer">v1.0.0</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-    const IMGBB_KEY = 'f2b50e9be27d0a5a75ec906233a6ed6d';
-    let db = JSON.parse(localStorage.getItem('forge_db_v4') || '[]');
-    let chartObj = null;
+'use strict';
 
-    async function uploadImage(e) {
-        const file = e.target.files[0];
-        if(!file) return;
-        
-        document.getElementById('upStatus').innerText = "Uploading...";
-        const formData = new FormData();
-        formData.append('image', file);
+/* ============================================================
+   WORKOUT TRACKER
+   Data Model (localStorage key: "workoutTracker.v1"):
+   {
+     "YYYY-MM-DD": {
+       soreness: { isSore: boolean, areas: string[] },
+       exercises: [
+         { name, sets, reps, weight, difficulty }
+       ]
+     }
+   }
+   ============================================================ */
 
-        try {
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-            const url = data.data.url;
-            
-            const today = new Date().toISOString().split('T')[0];
-            let entry = db.find(d => d.date === today) || { date: today, exercises: [] };
-            entry.photoUrl = url;
-            
-            db = db.filter(d => d.date !== today);
-            db.push(entry);
-            save();
-            document.getElementById('upStatus').innerText = "Upload Success!";
-            msg("Photo Synced to Cloud");
-        } catch(err) {
-            document.getElementById('upStatus').innerText = "Error!";
-        }
+// ---------- Constants ----------
+const STORAGE_KEY = 'workoutTracker.v1';
+const EXERCISE_PRESETS = ['Bench Press', 'Squat', 'Deadlift', 'Overhead Press', 'Run', 'Custom'];
+const SORENESS_AREAS = ['legs', 'arms', 'chest', 'back', 'shoulders', 'other'];
+const DIFFICULTIES = [
+  { key: 'easy',   emoji: '😄', label: 'Easy' },
+  { key: 'medium', emoji: '😐', label: 'Medium' },
+  { key: 'hard',   emoji: '😵', label: 'Hard' }
+];
+
+// ---------- State ----------
+let state = {
+  currentDate: todayISO(),
+  data: {}
+};
+
+// ---------- Utilities ----------
+function todayISO() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function escapeHtml(str) {
+  // XSS defense for any string rendered via innerHTML
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+function shiftDate(iso, delta) {
+  // Shift an ISO date string by N days. Parse as local to avoid TZ drift.
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + delta);
+  const ny = dt.getFullYear();
+  const nm = String(dt.getMonth() + 1).padStart(2, '0');
+  const nd = String(dt.getDate()).padStart(2, '0');
+  return `${ny}-${nm}-${nd}`;
+}
+
+// ---------- Storage ----------
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return (parsed && typeof parsed === 'object') ? parsed : {};
+  } catch (e) {
+    console.error('Failed to load storage:', e);
+    return {};
+  }
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+  } catch (e) {
+    console.error('Failed to save storage:', e);
+    showToast('Could not save (storage full?)');
+  }
+}
+
+function getDayEntry(iso) {
+  // Lazily create the entry for a given date.
+  if (!state.data[iso]) {
+    state.data[iso] = {
+      soreness: { isSore: false, areas: [] },
+      exercises: []
+    };
+  }
+  // Defensive: ensure shape is intact (in case of imported data).
+  const entry = state.data[iso];
+  if (!entry.soreness || typeof entry.soreness !== 'object') {
+    entry.soreness = { isSore: false, areas: [] };
+  }
+  if (!Array.isArray(entry.soreness.areas)) entry.soreness.areas = [];
+  if (!Array.isArray(entry.exercises)) entry.exercises = [];
+  return entry;
+}
+
+function hasAnyContent(iso) {
+  // A date "exists" for soreness-prompt purposes only if it has exercises.
+  const e = state.data[iso];
+  return !!(e && Array.isArray(e.exercises) && e.exercises.length > 0);
+}
+
+function getMostRecentPreviousWorkoutDate(iso) {
+  // Find the latest ISO key that is < iso AND has exercises logged.
+  const keys = Object.keys(state.data)
+    .filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k) && k < iso && hasAnyContent(k))
+    .sort();
+  return keys.length ? keys[keys.length - 1] : null;
+}
+
+function pruneEmptyDate(iso) {
+  // Remove a date key if it contains nothing worth keeping. Keeps storage tidy.
+  const e = state.data[iso];
+  if (!e) return;
+  const noExercises = !e.exercises || e.exercises.length === 0;
+  const noSoreness = !e.soreness || (!e.soreness.isSore && (!e.soreness.areas || e.soreness.areas.length === 0));
+  if (noExercises && noSoreness) {
+    delete state.data[iso];
+  }
+}
+
+// ---------- Rendering ----------
+function render() {
+  renderSoreness();
+  renderExercises();
+  renderHeaderCount();
+}
+
+function renderHeaderCount() {
+  const entry = state.data[state.currentDate];
+  const count = entry && entry.exercises ? entry.exercises.length : 0;
+  const el = document.getElementById('exerciseHeaderText');
+  el.textContent = count === 0 ? 'Exercises' : `Exercises (${count})`;
+}
+
+function renderSoreness() {
+  const section = document.getElementById('sorenessSection');
+  const prevDate = getMostRecentPreviousWorkoutDate(state.currentDate);
+
+  if (!prevDate) {
+    // No prior workout → hide soreness prompt.
+    section.classList.add('hidden');
+    section.innerHTML = '';
+    return;
+  }
+
+  const entry = getDayEntry(state.currentDate);
+  const isSore = !!entry.soreness.isSore;
+  const areas = entry.soreness.areas || [];
+  const hasOther = areas.some(a => a.startsWith('other:')) || areas.includes('other');
+  const otherValue = (areas.find(a => a.startsWith('other:')) || '').replace(/^other:/, '');
+
+  section.classList.remove('hidden');
+  section.innerHTML = `
+    <div class="soreness-card">
+      <div class="soreness-question">
+        Are you sore from your last workout?
+        <div class="soreness-sub">Last logged: ${escapeHtml(prevDate)}</div>
+      </div>
+      <div class="toggle-row">
+        <button type="button" class="toggle-btn ${isSore ? 'active' : ''}" data-sore="true">Yes</button>
+        <button type="button" class="toggle-btn ${!isSore ? 'active' : ''}" data-sore="false">No</button>
+      </div>
+      ${isSore ? `
+        <div class="soreness-areas">
+          <div class="area-chips">
+            ${SORENESS_AREAS.map(a => {
+              const active = a === 'other'
+                ? hasOther
+                : areas.includes(a);
+              return `<button type="button" class="chip ${active ? 'active' : ''}" data-area="${escapeHtml(a)}">${escapeHtml(a)}</button>`;
+            }).join('')}
+          </div>
+          ${hasOther ? `
+            <input type="text" class="other-input" id="otherAreaInput"
+                   placeholder="Describe other soreness..."
+                   value="${escapeHtml(otherValue)}">
+          ` : ''}
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  // Wire up soreness toggles
+  section.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.dataset.sore === 'true';
+      entry.soreness.isSore = val;
+      if (!val) entry.soreness.areas = [];
+      saveAndPrune();
+      renderSoreness();
+    });
+  });
+
+  // Wire up area chips
+  section.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const area = chip.dataset.area;
+      toggleSorenessArea(area);
+      renderSoreness();
+    });
+  });
+
+  // Wire up "other" text input
+  const otherInput = section.querySelector('#otherAreaInput');
+  if (otherInput) {
+    otherInput.addEventListener('input', () => {
+      const entry = getDayEntry(state.currentDate);
+      // Remove any existing other entries
+      entry.soreness.areas = entry.soreness.areas.filter(a => a !== 'other' && !a.startsWith('other:'));
+      const txt = otherInput.value.trim();
+      entry.soreness.areas.push(txt ? `other:${txt}` : 'other');
+      saveAndPrune();
+    });
+  }
+}
+
+function toggleSorenessArea(area) {
+  const entry = getDayEntry(state.currentDate);
+  const areas = entry.soreness.areas;
+
+  if (area === 'other') {
+    const hasOther = areas.some(a => a === 'other' || a.startsWith('other:'));
+    if (hasOther) {
+      entry.soreness.areas = areas.filter(a => a !== 'other' && !a.startsWith('other:'));
+    } else {
+      entry.soreness.areas.push('other');
+    }
+  } else {
+    const idx = areas.indexOf(area);
+    if (idx === -1) areas.push(area);
+    else areas.splice(idx, 1);
+  }
+  saveAndPrune();
+}
+
+function renderExercises() {
+  const list = document.getElementById('exerciseList');
+  const entry = state.data[state.currentDate];
+  const exercises = entry ? entry.exercises : [];
+
+  if (!exercises || exercises.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="emoji">💪</div>
+        <p>No exercises logged yet.<br>Tap "Add Exercise" to start.</p>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = exercises.map((ex, idx) => renderExerciseCard(ex, idx)).join('');
+
+  // Attach event listeners (avoid inline handlers for XSS safety)
+  list.querySelectorAll('[data-action="select-exercise"]').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const idx = Number(e.target.dataset.idx);
+      updateExerciseField(idx, 'name', e.target.value);
+      renderExercises(); // re-render to show/hide custom input
+    });
+  });
+
+  list.querySelectorAll('[data-action="custom-name"]').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const idx = Number(e.target.dataset.idx);
+      updateExerciseField(idx, 'customName', e.target.value);
+    });
+  });
+
+  list.querySelectorAll('[data-action="stat"]').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const idx = Number(e.target.dataset.idx);
+      const field = e.target.dataset.field;
+      const num = e.target.value === '' ? 0 : Number(e.target.value);
+      updateExerciseField(idx, field, isNaN(num) ? 0 : num);
+    });
+  });
+
+  list.querySelectorAll('[data-action="difficulty"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const idx = Number(btn.dataset.idx);
+      const diff = btn.dataset.diff;
+      updateExerciseField(idx, 'difficulty', diff);
+      renderExercises();
+    });
+  });
+
+  list.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = Number(btn.dataset.idx);
+      deleteExercise(idx);
+    });
+  });
+}
+
+function renderExerciseCard(ex, idx) {
+  // Determine whether this is a custom exercise or a preset
+  const isCustom = !EXERCISE_PRESETS.slice(0, -1).includes(ex.name) || ex._isCustom;
+  const selectValue = isCustom ? 'Custom' : ex.name;
+  const customName = isCustom ? ex.name : (ex.customName || '');
+
+  const optionsHtml = EXERCISE_PRESETS.map(name =>
+    `<option value="${escapeHtml(name)}" ${selectValue === name ? 'selected' : ''}>${escapeHtml(name)}</option>`
+  ).join('');
+
+  return `
+    <div class="exercise-card" data-idx="${idx}">
+      <div class="exercise-card-header">
+        <select class="exercise-select" data-action="select-exercise" data-idx="${idx}" aria-label="Exercise">
+          ${optionsHtml}
+        </select>
+        <button type="button" class="delete-btn" data-action="delete" data-idx="${idx}" aria-label="Delete exercise">×</button>
+      </div>
+
+      ${isCustom ? `
+        <input type="text" class="custom-name-input" data-action="custom-name" data-idx="${idx}"
+               placeholder="Exercise name" value="${escapeHtml(customName)}">
+      ` : ''}
+
+      <div class="stats-grid">
+        <div class="stat-field">
+          <label>Sets</label>
+          <input type="number" inputmode="numeric" min="0" data-action="stat" data-field="sets" data-idx="${idx}" value="${Number(ex.sets) || 0}">
+        </div>
+        <div class="stat-field">
+          <label>Reps</label>
+          <input type="number" inputmode="numeric" min="0" data-action="stat" data-field="reps" data-idx="${idx}" value="${Number(ex.reps) || 0}">
+        </div>
+        <div class="stat-field">
+          <label>Weight</label>
+          <input type="number" inputmode="decimal" min="0" step="0.5" data-action="stat" data-field="weight" data-idx="${idx}" value="${Number(ex.weight) || 0}">
+        </div>
+      </div>
+
+      <div class="difficulty-row">
+        ${DIFFICULTIES.map(d => `
+          <button type="button" class="diff-btn ${ex.difficulty === d.key ? 'active' : ''}"
+                  data-action="difficulty" data-diff="${d.key}" data-idx="${idx}"
+                  aria-label="${d.label}">
+            <span>${d.emoji}</span>
+            <span class="diff-label">${d.label}</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ---------- Mutations ----------
+function updateExerciseField(idx, field, value) {
+  const entry = getDayEntry(state.currentDate);
+  const ex = entry.exercises[idx];
+  if (!ex) return;
+
+  if (field === 'name') {
+    // Switching select: "Custom" means keep name empty until user types
+    if (value === 'Custom') {
+      ex._isCustom = true;
+      ex.name = ex.customName || '';
+    } else {
+      ex._isCustom = false;
+      ex.name = value;
+    }
+  } else if (field === 'customName') {
+    ex.customName = value;
+    ex._isCustom = true;
+    ex.name = value;
+  } else {
+    ex[field] = value;
+  }
+  saveData();
+  renderHeaderCount();
+}
+
+function addExercise() {
+  const entry = getDayEntry(state.currentDate);
+  entry.exercises.push({
+    name: 'Bench Press',
+    sets: 3,
+    reps: 10,
+    weight: 0,
+    difficulty: 'medium'
+  });
+  saveData();
+  render();
+}
+
+function deleteExercise(idx) {
+  const entry = getDayEntry(state.currentDate);
+  if (!entry.exercises[idx]) return;
+  entry.exercises.splice(idx, 1);
+  saveAndPrune();
+  render();
+}
+
+function saveAndPrune() {
+  pruneEmptyDate(state.currentDate);
+  saveData();
+}
+
+// ---------- CSV Export ----------
+function csvEscape(val) {
+  // RFC 4180: wrap in quotes if contains comma/quote/newline, and double-up quotes.
+  const s = val == null ? '' : String(val);
+  if (/[",\n\r]/.test(s)) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+function exportCSV() {
+  const headers = ['date', 'exercise', 'sets', 'reps', 'weight', 'difficulty', 'sore', 'sore_areas'];
+  const rows = [headers.join(',')];
+
+  const dates = Object.keys(state.data).sort();
+  let totalRows = 0;
+
+  for (const date of dates) {
+    const entry = state.data[date];
+    if (!entry) continue;
+    const sore = !!(entry.soreness && entry.soreness.isSore);
+    const areas = (entry.soreness && Array.isArray(entry.soreness.areas))
+      ? entry.soreness.areas.join('|')
+      : '';
+    const exercises = Array.isArray(entry.exercises) ? entry.exercises : [];
+
+    if (exercises.length === 0) {
+      // Still export a row if soreness data exists (keeps round-trip lossless)
+      if (sore || areas) {
+        rows.push([
+          csvEscape(date), '', '', '', '', '',
+          csvEscape(sore), csvEscape(areas)
+        ].join(','));
+        totalRows++;
+      }
+      continue;
     }
 
-    function ingest() {
-        const input = document.getElementById('logInput').value.trim();
-        if(!input) return;
-        try {
-            const p = JSON.parse(input);
-            (p.workouts || p).forEach(w => {
-                const existing = db.find(d => d.date === w.date);
-                db = db.filter(d => d.date !== w.date);
-                db.push({ ...existing, ...w });
-            });
-        } catch(e) {
-            const sections = input.split(/##\s+/).filter(s => s.trim());
-            sections.forEach(sec => {
-                const lines = sec.split('\n');
-                const date = (lines[0].match(/(\d{4}-\d{2}-\d{2})/) || [])[1];
-                if(date) {
-                    let workout = db.find(d => d.date === date) || { date, exercises: [] };
-                    workout.exercises = [];
-                    lines.slice(1).forEach(l => {
-                        const p = l.split(/[|]+/).map(i => i.trim()).filter(i => i);
-                        if(p.length >= 2) {
-                            const name = p[0];
-                            const weight = parseFloat((p[1].match(/(\d+\.?\d*)/) || [0])[0]);
-                            const reps = parseInt((p[2]?.match(/(\d+)/) || [0])[0]);
-                            let ex = workout.exercises.find(e => e.name === name);
-                            if(!ex) { ex = { name, sets: [] }; workout.exercises.push(ex); }
-                            ex.sets.push({ weight_lb: weight, reps });
-                        }
-                    });
-                    db = db.filter(d => d.date !== date);
-                    db.push(workout);
-                }
-            });
-        }
-        save();
-        document.getElementById('logInput').value = '';
+    // One row per exercise
+    for (const ex of exercises) {
+      rows.push([
+        csvEscape(date),
+        csvEscape(ex.name || ''),
+        csvEscape(Number(ex.sets) || 0),
+        csvEscape(Number(ex.reps) || 0),
+        csvEscape(Number(ex.weight) || 0),
+        csvEscape(ex.difficulty || ''),
+        csvEscape(sore),
+        csvEscape(areas)
+      ].join(','));
+      totalRows++;
+    }
+  }
+
+  if (totalRows === 0) {
+    showToast('No data to export');
+    return;
+  }
+
+  const csv = rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `workouts_${todayISO()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`Exported ${totalRows} row${totalRows === 1 ? '' : 's'}`);
+}
+
+// ---------- CSV Import ----------
+function parseCSV(text) {
+  // RFC 4180-ish parser. Handles quoted fields, escaped quotes, newlines in quotes.
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+  let i = 0;
+  const len = text.length;
+
+  while (i < len) {
+    const ch = text[i];
+
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+        inQuotes = false; i++; continue;
+      }
+      field += ch; i++; continue;
     }
 
-    function save() {
-        localStorage.setItem('forge_db_v4', JSON.stringify(db));
-        init();
+    if (ch === '"') { inQuotes = true; i++; continue; }
+    if (ch === ',') { row.push(field); field = ''; i++; continue; }
+    if (ch === '\r') { i++; continue; }
+    if (ch === '\n') {
+      row.push(field); rows.push(row);
+      row = []; field = ''; i++; continue;
+    }
+    field += ch; i++;
+  }
+  // Flush final field/row
+  if (field.length > 0 || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+  // Drop fully empty trailing rows
+  return rows.filter(r => !(r.length === 1 && r[0] === ''));
+}
+
+function importCSV(text) {
+  let parsed;
+  try {
+    parsed = parseCSV(text);
+  } catch (e) {
+    showToast('Could not parse CSV');
+    return;
+  }
+
+  if (!parsed || parsed.length < 2) {
+    showToast('CSV is empty or invalid');
+    return;
+  }
+
+  const header = parsed[0].map(h => String(h || '').trim().toLowerCase());
+  const idx = (name) => header.indexOf(name);
+  const iDate = idx('date');
+  const iExercise = idx('exercise');
+  const iSets = idx('sets');
+  const iReps = idx('reps');
+  const iWeight = idx('weight');
+  const iDifficulty = idx('difficulty');
+  const iSore = idx('sore');
+  const iAreas = idx('sore_areas');
+
+  if (iDate === -1) {
+    showToast('CSV missing "date" column');
+    return;
+  }
+
+  let imported = 0;
+  let skipped = 0;
+  // Track which dates came from CSV so we can replace their exercises wholesale
+  // (otherwise re-importing would duplicate rows). Soreness is overwritten per-date.
+  const touchedDates = new Set();
+
+  for (let r = 1; r < parsed.length; r++) {
+    const row = parsed[r];
+    if (!row || row.length === 0) continue;
+
+    const date = (row[iDate] || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { skipped++; continue; }
+
+    // First time we touch this date from CSV: reset its exercises list.
+    // This means re-importing the same CSV is idempotent.
+    if (!touchedDates.has(date)) {
+      touchedDates.add(date);
+      const existing = state.data[date] || {};
+      state.data[date] = {
+        soreness: existing.soreness && typeof existing.soreness === 'object'
+          ? existing.soreness
+          : { isSore: false, areas: [] },
+        exercises: []
+      };
     }
 
-    function init() {
-        renderCalendar();
-        updatePicker();
-        updateStats();
+    const entry = state.data[date];
+
+    // Soreness: take the first non-empty value seen for this date in the CSV
+    if (iSore !== -1 && row[iSore] != null && String(row[iSore]).trim() !== '') {
+      const soreVal = String(row[iSore]).trim().toLowerCase();
+      entry.soreness.isSore = (soreVal === 'true' || soreVal === '1' || soreVal === 'yes');
+    }
+    if (iAreas !== -1 && row[iAreas] != null && String(row[iAreas]).trim() !== '') {
+      entry.soreness.areas = String(row[iAreas]).split('|').map(s => s.trim()).filter(Boolean);
     }
 
-    function renderCalendar() {
-        const container = document.getElementById('calendarContainer');
-        container.innerHTML = '';
-        const start = new Date(2025, 0, 1);
-        const end = new Date();
-        let curr = new Date(start);
+    // Exercise row (skip if exercise name is blank — that's a soreness-only row)
+    const exName = iExercise !== -1 ? (row[iExercise] || '').trim() : '';
+    if (exName) {
+      const sets = iSets !== -1 ? Number(row[iSets]) : 0;
+      const reps = iReps !== -1 ? Number(row[iReps]) : 0;
+      const weight = iWeight !== -1 ? Number(row[iWeight]) : 0;
+      const diff = iDifficulty !== -1 ? String(row[iDifficulty] || '').trim().toLowerCase() : 'medium';
+      const safeDiff = ['easy','medium','hard'].includes(diff) ? diff : 'medium';
 
-        while (curr <= end) {
-            const month = document.createElement('div');
-            month.className = 'calendar-month-chunk';
-            month.innerHTML = `<div class="month-label">${curr.toLocaleString('default', { month: 'short', year: 'numeric' })}</div>`;
-            const grid = document.createElement('div');
-            grid.className = 'calendar-grid';
-            
-            const lastDay = new Date(curr.getFullYear(), curr.getMonth() + 1, 0).getDate();
-            for(let i=1; i<=lastDay; i++) {
-                const ds = `${curr.getFullYear()}-${String(curr.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                const log = db.find(d => d.date === ds);
-                const d = document.createElement('div');
-                d.className = `cal-day ${log ? 'active' : ''} ${log?.photoUrl ? 'has-photo' : ''}`;
-                d.innerText = i;
-                d.onclick = () => log && showLog(log);
-                grid.appendChild(d);
-            }
-            month.appendChild(grid);
-            container.appendChild(month);
-            curr.setMonth(curr.getMonth() + 1);
-        }
-        container.scrollLeft = container.scrollWidth;
+      entry.exercises.push({
+        name: exName,
+        sets: isNaN(sets) ? 0 : sets,
+        reps: isNaN(reps) ? 0 : reps,
+        weight: isNaN(weight) ? 0 : weight,
+        difficulty: safeDiff
+      });
+      imported++;
     }
+  }
 
-    function startTimelapse() {
-        const photos = db.filter(d => d.photoUrl).sort((a,b) => new Date(a.date) - new Date(b.date));
-        if(!photos.length) return msg("No photos found");
+  saveData();
+  render();
 
-        const content = document.getElementById('modalContent');
-        content.innerHTML = `
-            <div id="timelapseContainer">
-                <div id="tlDate" style="font-weight:bold; margin-bottom:10px;"></div>
-                <img id="timelapseFrame">
-                <button class="btn btn-ghost" style="width:100%; margin-top:15px;" onclick="stopTimelapse()">Stop</button>
-            </div>
-        `;
-        document.getElementById('modalOverlay').style.display = 'flex';
-        
-        let i = 0;
-        window.tlInterval = setInterval(() => {
-            const frame = document.getElementById('timelapseFrame');
-            const label = document.getElementById('tlDate');
-            if(!frame) return stopTimelapse();
-            
-            frame.src = photos[i].photoUrl;
-            label.innerText = photos[i].date;
-            i = (i + 1) % photos.length;
-        }, 200); // 5 frames per second
+  const msg = skipped > 0
+    ? `Imported ${imported} row${imported === 1 ? '' : 's'} (${skipped} skipped)`
+    : `Imported ${imported} row${imported === 1 ? '' : 's'}`;
+  showToast(msg);
+}
+
+// ---------- Event Wiring ----------
+function initEvents() {
+  const datePicker = document.getElementById('datePicker');
+  datePicker.addEventListener('change', (e) => {
+    const val = e.target.value;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+      state.currentDate = val;
+      render();
     }
+  });
 
-    function stopTimelapse() {
-        clearInterval(window.tlInterval);
-        closeModal();
-    }
+  document.getElementById('prevDayBtn').addEventListener('click', () => {
+    state.currentDate = shiftDate(state.currentDate, -1);
+    datePicker.value = state.currentDate;
+    render();
+  });
 
-    function showLog(log) {
-        let h = `<h3 style="color:var(--accent)">${log.date}</h3>`;
-        if(log.photoUrl) h += `<img src="${log.photoUrl}" style="width:100%; border-radius:8px; margin:10px 0;">`;
-        log.exercises.forEach(ex => {
-            h += `<div style="font-size:0.85rem; margin-top:10px;"><b>${ex.name}</b>: ${ex.sets.map(s => `${s.weight_lb || s.weight_kg || 'BW'}x${s.reps}`).join(', ')}</div>`;
-        });
-        h += `<button class="btn btn-ghost" style="width:100%; margin-top:20px;" onclick="closeModal()">Close</button>`;
-        document.getElementById('modalContent').innerHTML = h;
-        document.getElementById('modalOverlay').style.display = 'flex';
-    }
+  document.getElementById('nextDayBtn').addEventListener('click', () => {
+    state.currentDate = shiftDate(state.currentDate, 1);
+    datePicker.value = state.currentDate;
+    render();
+  });
 
-    function draw() {
-        const name = document.getElementById('exSelect').value;
-        if(!name) return;
-        const pts = db.filter(l => l.exercises.some(e => e.name === name))
-            .map(l => ({ x: l.date, y: Math.max(...l.exercises.find(e => e.name === name).sets.map(s => s.weight_lb || s.weight_kg || 0)) }))
-            .sort((a,b) => new Date(a.x) - new Date(b.x));
-        if(chartObj) chartObj.destroy();
-        chartObj = new Chart(document.getElementById('mainChart'), {
-            type: 'line', data: { labels: pts.map(p => p.x), datasets: [{ data: pts.map(p => p.y), borderColor: '#3b82f6', tension: 0.3 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-        });
-    }
+  document.getElementById('addExerciseBtn').addEventListener('click', addExercise);
+  document.getElementById('exportBtn').addEventListener('click', exportCSV);
 
-    function updatePicker() {
-        const sel = document.getElementById('exSelect');
-        const unique = [...new Set(db.flatMap(l => l.exercises.map(e => e.name)))].sort();
-        sel.innerHTML = unique.map(u => `<option value="${u}">${u}</option>`).join('');
-        draw();
-    }
-    function updateStats() { document.getElementById('stats').innerText = `Total Sessions: ${db.length} | Photos: ${db.filter(d => d.photoUrl).length}`; }
-    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; clearInterval(window.tlInterval); }
-    function msg(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.transform = 'translateX(0)'; setTimeout(() => t.style.transform = 'translateX(250%)', 3000); }
-    function exportJSON() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type:'application/json'})); a.download = 'forge_v4.json'; a.click(); }
+  const importInput = document.getElementById('importInput');
+  importInput.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => importCSV(String(ev.target.result || ''));
+    reader.onerror = () => showToast('Failed to read file');
+    reader.readAsText(file);
+    // Clear so the same file can be re-selected
+    importInput.value = '';
+  });
+}
 
-    init();
+// ---------- Init ----------
+function init() {
+  state.data = loadData();
+  state.currentDate = todayISO();
+  document.getElementById('datePicker').value = state.currentDate;
+  initEvents();
+  render();
+}
+
+document.addEventListener('DOMContentLoaded', init);
 </script>
+
 </body>
 </html>
